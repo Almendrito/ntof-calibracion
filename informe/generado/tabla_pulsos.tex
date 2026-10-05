@@ -1,0 +1,44 @@
+\begin{longtable}{lllcrrrrrrr}
+\toprule
+\textbf{Det.} & \textbf{HV} & \textbf{Fuente} & \textbf{Form.} & \textbf{Eventos} & \textbf{Desc.} & \textbf{Pared} & \textbf{Vivo} & \textbf{Registro} & \textbf{Carga} & \textbf{$Q_{12}/Q_{40}$} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Det.} & \textbf{HV} & \textbf{Fuente} & \textbf{Form.} & \textbf{Eventos} & \textbf{Desc.} & \textbf{Pared} & \textbf{Vivo} & \textbf{Registro} & \textbf{Carga} & \textbf{$Q_{12}/Q_{40}$} \\
+\midrule
+\endhead
+A & 1550 & Co-60 & XML & 50\,000 & 6.2 & 699 & 40.42 & 158 & 82 & 83 \\
+A & 1600 & Co-60 & bin. & 80\,000 & 1.1 & 614 & 43.83 & 81 & 77 & 82 \\
+A & 1600 & Cs-137 & XML & 80\,322 & 0.7 & 1373 & 0.12 & 130 & 72 & 82 \\
+A & 1650 & Co-60 & bin. & 80\,000 & 1.0 & 592 & 43.38 & 82 & 77 & 83 \\
+A & 1650 & Cs-137 & XML & 80\,000 & 0.5 & 1549 & 0.10 & 129 & 77 & 83 \\
+A & 1700 & Co-60 & bin. & 80\,000 & 1.3 & 597 & 36.65 & 82 & 76 & 82 \\
+A & 1700 & Cs-137 & XML & 80\,000 & 0.5 & 1613 & 0.08 & 130 & 74 & 83 \\
+\midrule
+B & 1600 & Co-60 & bin. & 80\,000 & 1.2 & 683 & 38.19 & 81 & 77 & 82 \\
+B & 1600 & Cs-137 & bin. & 80\,000 & 1.3 & 323 & 0.31 & 81 & 76 & 82 \\
+B & 1650 & Co-60 & bin. & 80\,000 & 1.0 & 669 & 36.77 & 81 & 78 & 83 \\
+B & 1650 & Cs-137 & bin. & 80\,000 & 1.1 & 305 & 0.30 & 81 & 77 & 83 \\
+B & 1700 & Co-60 & bin. & 80\,000 & 1.1 & 639 & 35.23 & 82 & 78 & 83 \\
+B & 1700 & Cs-137 & bin. & 80\,000 & 0.9 & 287 & 0.26 & 81 & 79 & 83 \\
+\midrule
+C & 1600 & Co-60 & bin. & 80\,000 & 1.1 & 928 & 29.77 & 87 & 75 & 82 \\
+C & 1600 & Cs-137 & bin. & 80\,000 & 1.3 & 302 & 0.32 & 81 & 76 & 82 \\
+C & 1650 & Co-60 & bin. & 80\,000 & 1.1 & 860 & 28.42 & 139 & 72 & 82 \\
+C & 1650 & Cs-137 & bin. & 80\,000 & 1.1 & 306 & 0.29 & 81 & 77 & 82 \\
+C & 1700 & Co-60 & bin. & 80\,000 & 1.4 & 770 & 38.61 & 139 & 73 & 83 \\
+C & 1700 & Cs-137 & bin. & 80\,000 & 0.9 & 307 & 0.28 & 81 & 77 & 83 \\
+\midrule
+D & 1600 & Co-60 & bin. & 80\,000 & 1.6 & 699 & 51.56 & 47 & 81 & 82 \\
+D & 1600 & Cs-137 & bin. & 80\,000 & 2.5 & 306 & 0.47 & 48 & 81 & 82 \\
+D & 1600 & Cs-137 (desc.) & bin. & 80\,000 & 4.2 & 306 & 0.58 & 81 & 73 & 81 \\
+D & 1650 & Co-60 & bin. & 80\,000 & 1.3 & 645 & 50.45 & 47 & 81 & 82 \\
+D & 1650 & Cs-137 & bin. & 80\,000 & 1.7 & 285 & 0.43 & 48 & 81 & 82 \\
+D & 1650 & Cs-137 (desc.) & bin. & 80\,000 & 3.0 & 300 & 0.49 & 81 & 75 & 82 \\
+D & 1700 & Co-60 & bin. & 80\,000 & 1.1 & 618 & 48.27 & 47 & 81 & 82 \\
+D & 1700 & Cs-137 & bin. & 80\,000 & 1.5 & 285 & 0.37 & 47 & 81 & 82 \\
+D & 1700 & Cs-137 (desc.) & bin. & 80\,000 & 2.1 & 288 & 0.42 & 81 & 74 & 81 \\
+\bottomrule
+\end{longtable}
+\par\smallskip
+\begin{minipage}{0.95\linewidth}\footnotesize HV en V. «Form.»: formato del archivo (XML del DRSOSC o binario del DRS4). «Eventos»: registros en el archivo. «Desc.»: porcentaje descartado por las banderas de calidad (saturacion, compuerta fuera del registro, sin pulso). «Pared»: duracion de la corrida en s; «Vivo»: fraccion del tiempo de pared en que la adquisicion estuvo viva, en \%, medida con el scaler de la placa. «Registro»: cuanto registro queda despues del onset, en ns (mediana). «Carga»: fraccion de la carga del pulso \emph{registrado} que entra en la compuerta de 12 ns, en \% (la misma columna de la tabla~\ref{tab:calib}); $Q_{12}/Q_{40}$: la misma compuerta, relativa a la carga acumulada hasta 40 ns del onset, que todos los registros contienen.\end{minipage}

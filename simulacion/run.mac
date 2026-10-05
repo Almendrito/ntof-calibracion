@@ -1,0 +1,5 @@
+# Espectro Compton en BC408 - modo batch (Co-60 por defecto).
+# Uso:  ./compton_spectrum run.mac
+/run/initialize
+/run/printProgress 100000
+/run/beamOn 2000000

@@ -1,0 +1,77 @@
+% Diagrama de las dos cadenas. Es texto, no datos: por eso vive aca y no en
+% analisis/informe.py. Los colores son los de las etiquetas \enpaper,
+% \adaptado y \propio del preambulo.
+\begin{figure}[htbp]
+\centering
+\footnotesize
+\begin{tikzpicture}[
+    caja/.style={draw, rounded corners=2pt, align=left, inner sep=4pt,
+                 minimum height=9mm},
+    cp/.style={caja, fill=azul!10, draw=azul!70, text width=5.3cm},
+    ca/.style={caja, fill=gris!12, draw=gris!80, text width=7.2cm},
+    cn/.style={caja, fill=naranjo!15, draw=naranjo!90, text width=7.2cm},
+    fl/.style={-{Stealth[length=2mm]}, thick, color=black!70},
+    par/.style={densely dashed, color=black!35},
+    tit/.style={font=\small\bfseries, align=center}]
+  % Columna del paper (x = 0) y la nuestra (x = 8.6 cm)
+  \node[tit] at (0, 0.9) {Kong \emph{et al.} (su Fig.~2)};
+  \node[tit] at (8.6, 0.9) {Este informe};
+
+  \node[cp] (p0) at (0, 0)
+    {\textbf{Espectro} (canal de ADC, cuentas), dado};
+  \node[cp] (p1) at (0, -1.5)
+    {\textbf{Modelo}: Klein-Nishina (Ec.~2, 10) llevado a canal por el
+     origen y convolucionado con una gaussiana (Ec.~8--9)};
+  \node[cp] (p2) at (0, -3.2)
+    {\textbf{NCC} (Ec.~15): inicio y fin del intervalo libres, 100 puntos
+     $\Rightarrow$ intervalo del borde};
+  \node[cp] (p3) at (0, -4.9)
+    {\textbf{SA} sobre la suma de cuadrados (Ec.~14): $\{A, B, \sigma\}$, o
+     $\Theta$ de 6 parámetros si hay dos bordes (Ec.~11--13)};
+  \node[cp] (p4) at (0, -6.6)
+    {\textbf{Canal del borde} de cada fuente};
+  \node[cp] (p5) at (0, -8.1)
+    {\textbf{Recta} energía--canal con 4 fuentes; $R^2$, SD, coseno};
+
+  \node[cn] (n0) at (8.6, 0)
+    {\textbf{Formas de onda} del DRS4 $\Rightarrow$ área de cada pulso
+     (compuerta de \PostFijo{} ns anclada al onset) $\Rightarrow$ espectro
+     neto con tiempo vivo y barra de Poisson};
+  \node[ca] (n1) at (8.6, -1.5)
+    {\textbf{Modelo}: plantilla de Geant4 \emph{de la fuente} (verificada),
+     llevada a canal por el origen, $ch = D\,E$, y convolucionada con una
+     gaussiana};
+  \node[ca] (n2) at (8.6, -3.2)
+    {\textbf{NCC}: se barre sólo $B$; la ventana queda fija por el origen;
+     un punto por bin $\Rightarrow$ ventana, semilla $D_0$ y cotas};
+  \node[ca] (n3) at (8.6, -4.9)
+    {\textbf{SA} sobre el $\chi^2$: $\{D, \sigma\}$ con $A$ despejada,
+     $T_{\text{init}}$ medida, \NArranques{} arranques, pulido local};
+  \node[cn] (n4) at (8.6, -6.6)
+    {\textbf{$D \pm \sigma_D$} por curvatura del $\chi^2$; verificada con
+     datos de respuesta conocida};
+  \node[cn] (n5) at (8.6, -8.1)
+    {\textbf{Validación}: ley de ganancia $D \propto V^{b}$ (test B) y
+     acuerdo Cs-137/Co-60 al mismo punto (test A)};
+
+  \foreach \a/\b in {p0/p1, p1/p2, p2/p3, p3/p4, p4/p5,
+                     n0/n1, n1/n2, n2/n3, n3/n4, n4/n5}
+     \draw[fl] (\a) -- (\b);
+  \foreach \i in {0,...,5}
+     \draw[par] (p\i.east) -- (n\i.west);
+
+  % Leyenda
+  \node[cp, text width=2.6cm, minimum height=5mm, align=center]
+       at (0.9, -9.3) {del paper};
+  \node[ca, text width=2.6cm, minimum height=5mm, align=center]
+       at (4.3, -9.3) {adaptado};
+  \node[cn, text width=2.6cm, minimum height=5mm, align=center]
+       at (7.7, -9.3) {propio};
+\end{tikzpicture}
+\caption{Las dos cadenas, paso por paso. Las líneas de trazos unen los pasos
+que cumplen la misma función. En gris, las piezas del paper que se
+conservaron con cambios; en naranja, las que el paper no trata. El esqueleto
+del medio (ventana por correlación, ajuste de la forma entera con un modelo
+convolucionado, recocido simulado) es el del paper.}
+\label{fig:flujo}
+\end{figure}

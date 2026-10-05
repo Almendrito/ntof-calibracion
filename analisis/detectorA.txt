@@ -1,0 +1,141 @@
+##### a_co60_1600
+----------------------------------------------------------------------------
+  a_co60_1600  (Co-60, A @ 1600 V)   plantilla Lvis_keVee  ->  escala en keVee
+  cadena de senal: HV 1600 V, muestreo 5 GS/s
+----------------------------------------------------------------------------
+  RELACION ENERGIA-CANAL   (por el origen, sin ordenada)
+     D          = 1.6982 +- 0.0041  mV*ns/keVee   (0.24 %)
+     1/D        = 0.5889 +- 0.0014  keVee/(mV*ns)
+     o sea      : 1000 mV*ns  <->  588.9 keVee
+  BORDES COMPTON
+       963.4 keVee  ->   1636.1 +- 3.9 mV*ns
+      1118.1 keVee  ->   1898.8 +- 4.6 mV*ns
+  RESOLUCION  (una sola sigma CONSTANTE en este modelo)
+     sigma_rel  = 0.0977 +- 0.0045   (adimensional)
+     sigma_E    = 94.1 keVee        sigma_ch = 159.8 mV*ns
+     FWHM       = 221.6 keVee   ->  23.0 % en E_ref = 963.4 keVee
+  CALIDAD
+     chi2/ndf   = 0.958  (241 gdl)   ->  errores escalados x1.00
+     corr(D, sigma) = -0.76   (reportarlos juntos)
+     multiarranque: 8 corridas, dispersion en D de 0.0000 (0.000 %)
+     ventana de ajuste [402, 2299] mV*ns   (NCC eligio [723, 2299], rho = 0.97671, semilla D = 1.6681)
+  EXCESO DE BAJO CANAL  (modelado, forma 'exp')
+     lambda     = 460.0 +- 30.3 mV*ns   amplitud C = 202 cuentas
+  (3.5 s en total)
+##### a_co60_1650
+----------------------------------------------------------------------------
+  a_co60_1650  (Co-60, A @ 1650 V)   plantilla Lvis_keVee  ->  escala en keVee
+  cadena de senal: HV 1650 V, muestreo 5 GS/s
+----------------------------------------------------------------------------
+  RELACION ENERGIA-CANAL   (por el origen, sin ordenada)
+     D          = 2.2563 +- 0.0046  mV*ns/keVee   (0.20 %)
+     1/D        = 0.4432 +- 0.0009  keVee/(mV*ns)
+     o sea      : 1000 mV*ns  <->  443.2 keVee
+  BORDES COMPTON
+       963.4 keVee  ->   2173.7 +- 4.4 mV*ns
+      1118.1 keVee  ->   2522.7 +- 5.1 mV*ns
+  RESOLUCION  (una sola sigma CONSTANTE en este modelo)
+     sigma_rel  = 0.0874 +- 0.0041   (adimensional)
+     sigma_E    = 84.2 keVee        sigma_ch = 190.0 mV*ns
+     FWHM       = 198.3 keVee   ->  20.6 % en E_ref = 963.4 keVee
+  CALIDAD
+     chi2/ndf   = 1.026  (254 gdl)   ->  errores escalados x1.01
+     corr(D, sigma) = -0.67   (reportarlos juntos)
+     multiarranque: 8 corridas, dispersion en D de 0.0000 (0.000 %)
+     ventana de ajuste [535, 3061] mV*ns   (NCC eligio [963, 3061], rho = 0.97843, semilla D = 2.2212)
+  EXCESO DE BAJO CANAL  (modelado, forma 'exp')
+     lambda     = 631.0 +- 33.7 mV*ns   amplitud C = 181 cuentas
+  (3.0 s en total)
+##### a_co60_1700
+----------------------------------------------------------------------------
+  a_co60_1700  (Co-60, A @ 1700 V)   plantilla Lvis_keVee  ->  escala en keVee
+  cadena de senal: HV 1700 V, muestreo 5 GS/s
+----------------------------------------------------------------------------
+  RELACION ENERGIA-CANAL   (por el origen, sin ordenada)
+     D          = 3.0199 +- 0.0064  mV*ns/keVee   (0.21 %)
+     1/D        = 0.3311 +- 0.0007  keVee/(mV*ns)
+     o sea      : 1000 mV*ns  <->  331.1 keVee
+  BORDES COMPTON
+       963.4 keVee  ->   2909.4 +- 6.2 mV*ns
+      1118.1 keVee  ->   3376.5 +- 7.2 mV*ns
+  RESOLUCION  (una sola sigma CONSTANTE en este modelo)
+     sigma_rel  = 0.0897 +- 0.0050   (adimensional)
+     sigma_E    = 86.4 keVee        sigma_ch = 261.1 mV*ns
+     FWHM       = 203.6 keVee   ->  21.1 % en E_ref = 963.4 keVee
+  CALIDAD
+     chi2/ndf   = 0.936  (272 gdl)   ->  errores escalados x1.00
+     corr(D, sigma) = -0.59   (reportarlos juntos)
+     multiarranque: 8 corridas, dispersion en D de 0.0000 (0.000 %)
+     ventana de ajuste [714, 4089] mV*ns   (NCC eligio [1286, 4089], rho = 0.97878, semilla D = 2.9665)
+  EXCESO DE BAJO CANAL  (modelado, forma 'exp')
+     lambda     = 961.6 +- 56.8 mV*ns   amplitud C = 158 cuentas
+  (3.3 s en total)
+##### cs137_1600
+----------------------------------------------------------------------------
+  cs137_1600  (Cs-137, A @ 1600 V)   plantilla Lvis_keVee  ->  escala en keVee
+  cadena de senal: HV 1600 V, muestreo 5 GS/s
+----------------------------------------------------------------------------
+  RELACION ENERGIA-CANAL   (por el origen, sin ordenada)
+     D          = 1.9450 +- 0.0038  mV*ns/keVee   (0.19 %)
+     1/D        = 0.5141 +- 0.0010  keVee/(mV*ns)
+     o sea      : 1000 mV*ns  <->  514.1 keVee
+  BORDES COMPTON
+       477.3 keVee  ->    928.4 +- 1.8 mV*ns
+  RESOLUCION  (una sola sigma CONSTANTE en este modelo)
+     sigma_rel  = 0.1035 +- 0.0036   (adimensional)
+     sigma_E    = 49.4 keVee        sigma_ch = 96.1 mV*ns
+     FWHM       = 116.3 keVee   ->  24.4 % en E_ref = 477.3 keVee
+  CALIDAD
+     chi2/ndf   = 0.965  (218 gdl)   ->  errores escalados x1.00
+     corr(D, sigma) = -0.70   (reportarlos juntos)
+     multiarranque: 8 corridas, dispersion en D de 0.0000 (0.000 %)
+     ventana de ajuste [334, 1161] mV*ns   (NCC eligio [412, 1161], rho = 0.98429, semilla D = 1.9158)
+  EXCESO DE BAJO CANAL  (modelado, forma 'exp')
+     lambda     = 223.8 +- 34.0 mV*ns   amplitud C = 120 cuentas
+  (4.3 s en total)
+##### cs137_1650
+----------------------------------------------------------------------------
+  cs137_1650  (Cs-137, A @ 1650 V)   plantilla Lvis_keVee  ->  escala en keVee
+  cadena de senal: HV 1650 V, muestreo 5 GS/s
+----------------------------------------------------------------------------
+  RELACION ENERGIA-CANAL   (por el origen, sin ordenada)
+     D          = 2.4824 +- 0.0059  mV*ns/keVee   (0.24 %)
+     1/D        = 0.4028 +- 0.0010  keVee/(mV*ns)
+     o sea      : 1000 mV*ns  <->  402.8 keVee
+  BORDES COMPTON
+       477.3 keVee  ->   1184.9 +- 2.8 mV*ns
+  RESOLUCION  (una sola sigma CONSTANTE en este modelo)
+     sigma_rel  = 0.0948 +- 0.0039   (adimensional)
+     sigma_E    = 45.3 keVee        sigma_ch = 112.4 mV*ns
+     FWHM       = 106.6 keVee   ->  22.3 % en E_ref = 477.3 keVee
+  CALIDAD
+     chi2/ndf   = 1.157  (255 gdl)   ->  errores escalados x1.08
+     corr(D, sigma) = -0.82   (reportarlos juntos)
+     multiarranque: 8 corridas, dispersion en D de 0.0000 (0.000 %)
+     ventana de ajuste [293, 1487] mV*ns   (NCC eligio [527, 1487], rho = 0.98756, semilla D = 2.4537)
+  EXCESO DE BAJO CANAL  (modelado, forma 'exp')
+     lambda     = 265.1 +- 34.1 mV*ns   amplitud C = 168 cuentas
+  (4.3 s en total)
+##### cs137_1700
+----------------------------------------------------------------------------
+  cs137_1700  (Cs-137, A @ 1700 V)   plantilla Lvis_keVee  ->  escala en keVee
+  cadena de senal: HV 1700 V, muestreo 5 GS/s
+----------------------------------------------------------------------------
+  RELACION ENERGIA-CANAL   (por el origen, sin ordenada)
+     D          = 3.6477 +- 0.0080  mV*ns/keVee   (0.22 %)
+     1/D        = 0.2741 +- 0.0006  keVee/(mV*ns)
+     o sea      : 1000 mV*ns  <->  274.1 keVee
+  BORDES COMPTON
+       477.3 keVee  ->   1741.1 +- 3.8 mV*ns
+  RESOLUCION  (una sola sigma CONSTANTE en este modelo)
+     sigma_rel  = 0.0981 +- 0.0031   (adimensional)
+     sigma_E    = 46.8 keVee        sigma_ch = 170.8 mV*ns
+     FWHM       = 110.2 keVee   ->  23.1 % en E_ref = 477.3 keVee
+  CALIDAD
+     chi2/ndf   = 0.902  (252 gdl)   ->  errores escalados x1.00
+     corr(D, sigma) = -0.78   (reportarlos juntos)
+     multiarranque: 8 corridas, dispersion en D de 0.0000 (0.000 %)
+     ventana de ajuste [430, 2185] mV*ns   (NCC eligio [774, 2185], rho = 0.98519, semilla D = 3.6046)
+  EXCESO DE BAJO CANAL  (modelado, forma 'exp')
+     lambda     = 371.4 +- 32.7 mV*ns   amplitud C = 180 cuentas
+  (4.2 s en total)

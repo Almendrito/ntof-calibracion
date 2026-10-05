@@ -1,0 +1,5 @@
+# Cs-137: 661.66 keV -> borde Compton en 477 keV (un solo borde, el caso clasico).
+/gun/preset cs137
+/run/initialize
+/run/printProgress 100000
+/run/beamOn 2000000

@@ -1,0 +1,7 @@
+# Co-60: dos lineas 1173.2 y 1332.5 keV -> bordes Compton en 963 y 1118 keV.
+# Por defecto muestrea una linea por evento (espectro de dos bordes limpio).
+# Para summing por coincidencia real:  /gun/cascade true
+/gun/preset co60
+/run/initialize
+/run/printProgress 100000
+/run/beamOn 2000000

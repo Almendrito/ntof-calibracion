@@ -1,0 +1,317 @@
+==============================================================================
+Fig. 3 - recta canal-energia (ajuste de los puntos que el paper rotula)
+==============================================================================
+  LaBr3:Ce
+    fotopico (azul)  n=6  y = 2.0692 x -4.756   RMS = 1.609198  R2 = 0.999974
+                          impreso: y = 2.07 x -4.76
+    borde   (rojo)   n=5  y = 2.0959 x -21.731   RMS = 2.183036  R2 = 0.999924
+                          impreso: y = 2.10 x -21.73
+    recuadro del paper:  SD_azul = 2.183036  R2_azul = 0.999924
+                         SD_rojo = 1.609198  R2_rojo = 0.999974
+    -> SD y R2 estan INTERCAMBIADOS entre azul y rojo en el
+       recuadro: el SD del ajuste azul es 1.609198 (impreso en rojo)
+       y el del rojo es 2.183036 (impreso en azul).
+  NaI:Tl
+    fotopico (azul)  n=6  y = 0.8525 x -58.882   RMS = 1.981123  R2 = 0.999960
+                          impreso: y = 0.85 x -58.88
+    borde   (rojo)   n=4  y = 0.8397 x -40.183   RMS = 7.274524  R2 = 0.999055
+                          impreso: y = 0.84 x -40.18
+    recuadro del paper:  SD_azul = 7.274524  R2_azul = 0.999055
+                         SD_rojo = 1.981123  R2_rojo = 0.999960
+    -> SD y R2 estan INTERCAMBIADOS entre azul y rojo en el
+       recuadro: el SD del ajuste azul es 1.981123 (impreso en rojo)
+       y el del rojo es 7.274524 (impreso en azul).
+
+  Consecuencia sobre lo que AFIRMA la Seccion III:
+    "the standard deviation associated with the NCC-SA calibration
+     consistently remains below that of the full energy peak fitting
+     method, indicating higher precision"
+    LaBr3:Ce    SD(NCC-SA) = 2.183   SD(fotopico) = 1.609   -> NO se cumple
+    NaI:Tl      SD(NCC-SA) = 7.275   SD(fotopico) = 1.981   -> NO se cumple
+
+==============================================================================
+Fig. 3 - coherencia de los rotulos (fuente contra energia)
+==============================================================================
+  NaI:Tl    fotopico ( 846,  662) rotulado Na22   -> deberia ser Cs137
+  NaI:Tl    fotopico (1050,  834) rotulado Cs137  -> deberia ser Mn54
+  NaI:Tl    fotopico (1442, 1173) rotulado Mn54   -> deberia ser Co60
+  NaI:Tl    borde    ( 620,  477) rotulado Co60   -> deberia ser Cs137
+  NaI:Tl    borde    ( 801,  639) rotulado Na22   -> deberia ser Mn54
+  NaI:Tl    borde    (1207,  963) rotulado Mn54   -> deberia ser Co60
+  NaI:Tl    borde    (1303, 1061) rotulado Co60   -> deberia ser Na22
+  7 rotulos cruzados.
+  No cambian ningun ajuste (los pares canal-energia estan bien),
+  pero si se leen los rotulos se le atribuyen lineas a la fuente
+  equivocada.
+
+==============================================================================
+Ec. 1 - la formula impresa contra los bordes que rotula el paper
+==============================================================================
+  gamma [keV]   rotulo   Ec.1 impresa   Ec.1 corregida
+     661.657      477          184.3           477.3
+     834.848      639          195.6           639.2
+    1173.228      963          209.8           963.4
+    1274.537     1061          212.8          1061.7
+    1332.492     1117          214.4          1118.1
+  -> los rotulos siguen la CORREGIDA. La Ec. 1 impresa da la energia
+     del foton retrodispersado y esta mal por un factor ~2.6 a 5.2.
+
+==============================================================================
+Ec. 12 - dE = 'energy difference between gamma lines'
+==============================================================================
+  LaBr3: los dos bordes del Co-60 caen en los canales 469 y 543
+         separacion medida            :  74.0 canales
+         D*dE con dE de GAMMAS  (159.3 keV):  76.0 canales
+         D*dE con dE de BORDES  (154.7 keV):  73.8 canales
+  -> la separacion medida coincide con la version de BORDES.
+     Con la formula impresa el segundo borde queda 2.0 canales mas arriba,
+     o sea 4.2 keV, contra un SD del ajuste de 2.2 keV.
+  (El panel de NaI no sirve para este chequeo: no tiene el borde de
+   1117 keV.)
+
+==============================================================================
+Similitud coseno - el paper reporta 99.9993% (LaBr3) y 99.9999% (NaI)
+==============================================================================
+  LaBr3:Ce   (objetivo 0.999993)
+      coeficientes                 0.95102840
+      en_los_canales               0.99998576
+      en_toda_la_escala            0.99993807
+      recon_vs_teorico_fotopico    0.99999874
+      recon_vs_teorico_borde       0.99999697
+  NaI:Tl     (objetivo 0.999999)
+      coeficientes                 0.99997942
+      en_los_canales               0.99998173
+      en_toda_la_escala            0.99992097
+      recon_vs_teorico_fotopico    0.99999809
+      recon_vs_teorico_borde       0.99996064
+  -> ninguna lectura reproduce los DOS valores impresos. El paper no
+     define entre que vectores calcula la similitud, asi que este
+     numero no es verificable.
+  Nota aparte: entre dos rectas casi proporcionales esta metrica es
+     insensible por construccion, asi que 99.999% no acota gran cosa.
+
+==============================================================================
+Fig. 5 - robustez frente al intervalo de ajuste
+==============================================================================
+  intervalo          borde
+  [1500, 1600]        1521
+  [1400, 1600]        1538
+  [1200, 1600]        1540
+  [1200, 1800]        1537
+  [1000, 2000]        1540
+  [ 800, 2200]        1535
+  media 1535.2   SD 6.57   rango 19 canales   dispersion 1.24%
+  -> el paper lo describe como 'highly consistent' y no da un numero;
+     el que sale de sus propios paneles es 1.2% de dispersion total.
+     El intervalo mas angosto ([1500,1600], que no alcanza a contener
+     el flanco entero) es el unico que se aparta: sacandolo, la
+     dispersion baja a 0.33%.
+
+==============================================================================
+Fig. 4 - lo que el texto afirma, y por que no es auditable
+==============================================================================
+  BC408   reduccion del error medio: 80% contra el metodo de la
+          diferencia y 85% contra el gaussiano.
+  EJ309   reduccion del error medio: 44% contra el metodo de la
+          diferencia y 66% contra el gaussiano.
+  La Fig. 4 es el unico soporte de esos numeros y no publica la tabla
+  subyacente: los errores relativos hay que leerlos del grafico, con
+  una precision (~0.1%) del mismo orden que los propios valores del
+  NCC-SA (0.2-0.6%). Digitalizarlos daria una cifra inventada, asi
+  que este bloque se deja SIN auditar a proposito.
+  Lo que si se puede decir: la Fig. 4 tiene 6 puntos por metodo, o sea
+  6 bordes Compton (341, 477, 639, 963, 1061 y 1117 keV), que son los
+  de las cuatro fuentes. El panel de LaBr3 usa 5 y el de NaI 4, asi
+  que el conjunto de bordes NO es el mismo en las dos figuras.
+
+==============================================================================
+Otras inconsistencias internas del paper
+==============================================================================
+  1. Ec. 14 define la loss como minimos cuadrados; el parrafo de
+     Metropolis dice que E(x) es 'the NCC-based matching error'. Son
+     objetivos distintos y hay que elegir uno.
+  2. Seccion III dice que la robustez se probo 'calibrating EJ309
+     spectra (137Cs source)'; el epigrafe de la Fig. 5 dice BC408.
+  3. El borde del Co-60 de 1332.5 keV se rotula 1117 keV en la Fig. 3;
+     la Ec. 1 corregida da 1118.1 keV.
+  4. T_init = 2000 y |dE_mean| < 0.001 son constantes con unidades del
+     COSTO, y el costo no esta fijado (punto 1). No son transferibles.
+
+==============================================================================
+Seccion II - NCC -> SA sobre nuestras corridas
+==============================================================================
+  co60         Co-60, Detector A a 1550 V (junio 2026)
+      fuente Co-60  ->  bordes teoricos 963.4, 1118.1 keV
+      NCC: intervalo [952, 1967] mV*ns   rho = 0.99095   (sigma_rel de S2 = 0.25)
+      SA : B1 = 1124.2  B2 = 1304.7  D = 1.1669  sigma = (73, 155)
+           A2/A1 = 6.259   chi2/ndf = 1.18   (Ec.12 con dE de bordes, D ligada a la Ec. 8)
+      NCC-SA      borde =   1124.2 mV*ns
+      Gauss FWHM  borde =   1341.3 mV*ns
+      Diferencia  borde =   1110.9 mV*ns
+      (17 s)
+      barrido del sigma de S2 (el paper no lo especifica; gana el
+      de mayor rho, pero ojo: fin_rel depende de sigma_rel, asi que
+      los rho no se midieron sobre el mismo conjunto de ventanas):
+        sigma_rel   rho        B (NCC)
+          0.03      0.78246     1216.5
+          0.05      0.86691     1219.1
+          0.07      0.93702     1259.8
+          0.09      0.95749     1275.2
+          0.12      0.98407     1284.6
+          0.16      0.99008     1249.6
+          0.20      0.99094     1281.6
+          0.25      0.99095     1285.1   <- elegido
+      diagnostico del solapamiento (Ec. 11-13):
+        D libre    B1 =  1148.4  B2 =  1367.3  D = 1.4149  A2/A1 =   1.548  sep = 2.16 sigma  chi2/ndf = 1.37
+        D = B1/Emax B1 =  1124.2  B2 =  1304.7  D = 1.1669  A2/A1 =   6.259  sep = 2.46 sigma  chi2/ndf = 1.18
+        (con Ec. 12 impresa, dE de las lineas gamma:)
+        D = B1/Emax  B1 =  1170.3  B2 =  1363.8  D = 1.2147  chi2/ndf = 1.20
+      10 bloques... listo (453 s)
+      cada bloque tiene ~4618 pulsos (1/10 de la corrida). Las
+      diez mediciones del paper tienen cada una la estadistica
+      COMPLETA, asi que estos SD son mas grandes que los suyos por
+      un factor ~sqrt(10) = 3.2 si la dispersion fuera solo de
+      conteo. La columna escalada se da con esa salvedad.
+      NCC-SA      media    971.0   SD  456.85 (40.64%)   SD/sqrt(10) = 144.47 (12.85%)   (10/10 bloques)
+      Gauss FWHM  media   1340.4   SD    7.38 ( 0.55%)   SD/sqrt(10) =   2.33 ( 0.17%)   (10/10 bloques)
+      Diferencia  media   1079.4   SD   70.36 ( 6.33%)   SD/sqrt(10) =  22.25 ( 2.00%)   (10/10 bloques)
+      robustez de intervalo (los intervalos relativos de la Fig. 5):
+        intervalo [mV*ns]     bins    NCC-SA       Gauss FWHM   Diferencia   
+        [   1025,    1171]     47    771.0        nan          1170.3       
+        [    879,    1171]     94    1148.4       nan          879.7        
+        [    879,    1319]    141    1148.4       nan          879.7        
+        [    732,    1465]    235    1273.4       1363.5       1464.1       
+        [    586,    1611]    328    1100.0       1345.4       585.9        
+        [   1098,    1171]     23    salteado: menos de 30 bins
+        dispersion (todos)      46.16%       1.33%        88.17%       
+          sin el mas angosto    14.86%       1.33%        92.21%       
+
+  cs137_1600   Cs-137, Detector A a 1600 V (26-ago-2026)
+      fuente Cs-137  ->  bordes teoricos 477.3 keV
+      NCC: intervalo [579, 1389] mV*ns   rho = 0.99618   (sigma_rel de S2 = 0.16)
+      SA : B = 915.2   sigma = 115.5 (sigma/B = 0.126)   chi2/ndf = 2.02
+      NCC-SA      borde =    915.2 mV*ns
+      Gauss FWHM  borde =    951.7 mV*ns
+      Diferencia  borde =    829.0 mV*ns
+      (3 s)
+      barrido del sigma de S2 (el paper no lo especifica; gana el
+      de mayor rho, pero ojo: fin_rel depende de sigma_rel, asi que
+      los rho no se midieron sobre el mismo conjunto de ventanas):
+        sigma_rel   rho        B (NCC)
+          0.03      0.87254      863.8
+          0.05      0.93786      874.4
+          0.07      0.97137      909.9
+          0.09      0.98414      900.8
+          0.12      0.99572      924.4
+          0.16      0.99618      929.8   <- elegido
+          0.20      0.99578      923.5
+          0.25      0.99598      925.6
+      10 bloques... listo (53 s)
+      cada bloque tiene ~7257 pulsos (1/10 de la corrida). Las
+      diez mediciones del paper tienen cada una la estadistica
+      COMPLETA, asi que estos SD son mas grandes que los suyos por
+      un factor ~sqrt(10) = 3.2 si la dispersion fuera solo de
+      conteo. La columna escalada se da con esa salvedad.
+      NCC-SA      media    916.7   SD   24.39 ( 2.67%)   SD/sqrt(10) =   7.71 ( 0.84%)   (10/10 bloques)
+      Gauss FWHM  media    951.7   SD   24.32 ( 2.56%)   SD/sqrt(10) =   7.69 ( 0.81%)   (10/10 bloques)
+      Diferencia  media    822.8   SD  139.39 (16.81%)   SD/sqrt(10) =  44.08 ( 5.32%)   (10/10 bloques)
+      robustez de intervalo (los intervalos relativos de la Fig. 5):
+        intervalo [mV*ns]     bins    NCC-SA       Gauss FWHM   Diferencia   
+        [    894,     954]     30    611.0        nan          895.0        
+        [    835,     954]     59    923.0        nan          869.0        
+        [    716,     954]    119    911.0        nan          829.0        
+        [    716,    1074]    179    919.0        957.1        829.0        
+        [    596,    1192]    298    911.0        952.2        829.0        
+        [    477,    1311]    417    914.0        950.6        829.0        
+        dispersion (todos)      36.07%       0.69%        7.80%        
+          sin el mas angosto    1.31%        0.69%        4.78%        
+
+
+==============================================================================
+Seccion III - recta canal-energia, por punto de operacion
+==============================================================================
+  A @ 1550 V      Diferencia   1 punto(s): un solo borde medido en este punto de operacion: no hay recta que ajustar
+  A @ 1550 V      Gauss FWHM   1 punto(s): un solo borde medido en este punto de operacion: no hay recta que ajustar
+  A @ 1550 V      NCC-SA       1 punto(s): un solo borde medido en este punto de operacion: no hay recta que ajustar
+  A @ 1600 V      Diferencia   1 punto(s): un solo borde medido en este punto de operacion: no hay recta que ajustar
+  A @ 1600 V      Gauss FWHM   1 punto(s): un solo borde medido en este punto de operacion: no hay recta que ajustar
+  A @ 1600 V      NCC-SA       1 punto(s): un solo borde medido en este punto de operacion: no hay recta que ajustar
+
+  NINGUN punto de operacion tiene dos o mas bordes medidos, asi que
+  no hay recta que ajustar. Es la Fig. 3 del paper, y no se puede
+  hacer con lo medido: ver la lista del final.
+
+==============================================================================
+Fig. 4 - error relativo por metodo
+==============================================================================
+  No calculable: hace falta una recta de calibracion con al menos
+  3 bordes en un mismo punto de operacion (con 2 la recta pasa
+  exacta y todos los errores relativos dan 0 por construccion).
+  Lo que SI se puede reportar con lo medido es la DISPERSION entre
+  bloques, que es la barra de error de la Fig. 4 sin el valor
+  central:
+
+  corrida       metodo        borde [mV*ns]   SD entre bloques
+  co60          NCC-SA            1124.2       456.85  (40.64%)
+  co60          Gauss FWHM        1341.3         7.38  (0.55%)
+  co60          Diferencia        1110.9        70.36  (6.33%)
+  cs137_1600    NCC-SA             915.2        24.39  (2.67%)
+  cs137_1600    Gauss FWHM         951.7        24.32  (2.56%)
+  cs137_1600    Diferencia         829.0       139.39  (16.81%)
+
+==============================================================================
+Lo que NO se puede replicar con lo medido, y por que
+==============================================================================
+  1. Fig. 3 (recta canal-energia con SD y R^2).
+     El paper la arma con 4 fuentes medidas con el MISMO detector y la
+     MISMA ganancia: 5 o 6 bordes por recta. Aca hay:
+       A @ 1550 V       Co-60
+       A @ 1600 V       Cs-137
+     o sea una fuente por punto de operacion. Con un solo borde no hay
+     recta; con dos, la recta pasa exacta y SD = 0, R^2 = 1 no miden
+     nada. Hace falta medir Cs-137 y Co-60 (y ojala Na-22 y Mn-54) al
+     mismo alto voltaje.
+     Ojo con un detalle estructural: la Ec. 8 mapea canal a energia POR
+     EL ORIGEN, asi que todos los bordes que salen de UNA fuente caen
+     exactos sobre una recta por el origen. La recta solo mide algo si
+     los puntos vienen de fuentes DISTINTAS.
+
+  2. Fig. 4 (error relativo por metodo).
+     Depende de la recta del punto 1: la energia reconstruida sale de
+     ella. Sin recta, el error relativo no esta definido.
+     La BARRA de error si se puede: es la dispersion entre mediciones,
+     y esta calculada arriba con los 10 bloques.
+
+  3. La comparacion contra la calibracion por fotopico (y su similitud
+     coseno). Un centellador plastico no tiene fotopico. El paper
+     tampoco la hace para BC408 y EJ309, por lo mismo.
+
+  4. Las 10 mediciones INDEPENDIENTES.
+     Aca son 10 bloques de una misma corrida, y eso las cambia en dos
+     direcciones opuestas:
+       - hacia abajo: entre bloques solo varia la estadistica de
+         conteo, mientras que entre las diez corridas del paper varian
+         ademas el montaje, la posicion de la fuente y la ganancia;
+       - hacia arriba: cada bloque tiene la DECIMA parte de las cuentas,
+         asi que su dispersion estadistica es ~sqrt(10) veces la de una
+         medicion completa.
+     Por eso el SD se reporta crudo y escalado por sqrt(10), y ninguno
+     de los dos es directamente la barra del paper.
+
+  5. El segundo borde del Co-60 (1118.1 keV).
+     Con Theta = {A1,A2,B1,s1,s2,D} (Ec. 11) D queda LIBRE ademas de
+     B1, y el modelo se sobre-parametriza respecto de su propia
+     Ec. 8, que ya fija el mapa por el origen. Medido en co60:
+       D libre         : D = 1.4149  A2/A1 = 1.55  chi2/ndf = 1.37
+       D = B1/E_max,1  : D = 1.1669  A2/A1 = 6.26  chi2/ndf = 1.18
+     o sea 21% de diferencia en D con chi2 casi igual, y un
+     cociente de amplitudes sin sentido fisico (el Co-60 emite las
+     dos lineas con intensidades practicamente iguales).
+     Los dos bordes quedan a 2.5 sigma1. El cierre con verdad
+     conocida de `metodo.py` dice que a 2 sigma D sale sesgada ~-14%
+     con +-15% de dispersion, y que recien a 4 sigma es utilizable.
+     Consistente con eso, el SD de B1 entre los 10 bloques es del
+     41%.
+
+  figuras: replica_paper\figuras\replica_ajustes.png
+           replica_paper\figuras\replica_fig3.png

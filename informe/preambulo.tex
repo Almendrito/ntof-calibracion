@@ -1,0 +1,70 @@
+% ---------------------------------------------------------------------------
+% preambulo.tex - paquetes y estilo del informe.
+%
+% Este archivo es EDITABLE: nada del proyecto lo reescribe. Lo que si se
+% regenera solo es la carpeta generado/ (tablas y numeros), que la escribe
+% `python analisis/informe.py`.
+% ---------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+% lmodern va ANTES de fontenc y no es decorativo: sin una fuente escalable,
+% microtype aborta la compilacion con "auto expansion is only possible with
+% scalable fonts".
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+% `es-nodecimaldot` deja el punto decimal como esta escrito. Sin esa opcion,
+% babel convierte a coma SOLO dentro de modo matematico, asi que las tablas
+% dirian 1,6561 y el texto -donde los numeros entran como macros- 1.6561.
+\usepackage[spanish,es-noquoting,es-tabla,es-nodecimaldot]{babel}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+
+\usepackage{amsmath}
+\usepackage{amssymb}          % \gtrsim y compania
+\usepackage{graphicx}
+% `float` da el especificador [H]: pone la figura AHI, sin dejarla flotar.
+% Se usa en el apéndice, donde las figuras son el contenido y no un apoyo.
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{figuras/}}
+
+\definecolor{azul}{HTML}{1F4E79}
+\definecolor{gris}{HTML}{555F6A}
+\definecolor{naranjo}{HTML}{C0661A}
+
+% Diagramas (el flujo del metodo y la cadena de senal). pgfmath, que viene con
+% tikz, es ademas lo que calcula k = b/12 en informe.tex.
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,decorations.pathreplacing}
+
+% Etiquetas de procedencia. Van al comienzo del cuerpo de una seccion de
+% metodo (no en el titulo, para no ensuciar el indice) y dicen de donde sale
+% lo que sigue: del paper de Kong et al., del paper modificado, o propio.
+\newcommand{\etiqueta}[2]{\leavevmode{\setlength{\fboxsep}{1.5pt}%
+   \colorbox{#1}{\color{white}\scriptsize\sffamily\bfseries\strut #2}}}
+\newcommand{\enpaper}{\etiqueta{azul}{DEL PAPER}}
+\newcommand{\adaptado}{\etiqueta{gris}{ADAPTADO}}
+\newcommand{\propio}{\etiqueta{naranjo}{PROPIO}}
+
+\hypersetup{colorlinks=false,
+            pdftitle={Calibracion por borde Compton de cuatro centelladores},
+            pdfsubject={Calibracion en energia}}
+
+% Un par de atajos para no repetir unidades en el texto.
+\newcommand{\mVns}{mV$\cdot$ns}
+\newcommand{\DkeV}{\mVns/keV}
+\newcommand{\keVdep}{keV\textsubscript{dep}}
+
+% Caja para las advertencias, que en este informe son la mitad del contenido.
+\newenvironment{aviso}%
+  {\par\medskip\noindent\begin{minipage}{\linewidth}%
+   \color{gris}\small\rule{\linewidth}{0.4pt}\par\medskip}%
+  {\par\medskip\rule{\linewidth}{0.4pt}\end{minipage}\par\medskip}
+
+% Los numeros del informe salen de aca, no se tipean.
+\input{generado/numeros}

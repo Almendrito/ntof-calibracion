@@ -1,0 +1,5 @@
+# Na-22: 511 (aniquilacion) y 1274.5 keV -> bordes Compton en 341 y 1062 keV.
+/gun/preset na22
+/run/initialize
+/run/printProgress 100000
+/run/beamOn 2000000

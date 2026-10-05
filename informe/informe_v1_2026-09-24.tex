@@ -1,0 +1,2702 @@
+% ===========================================================================
+% informe.tex - el informe de la campaña de calibración.
+%
+% ESTE ARCHIVO ES PARA EDITAR A MANO. Nada del proyecto lo reescribe.
+%
+% Los números y las tablas NO se tipean: salen de generado/, que reescribe
+%     python analisis/informe.py
+% cada vez que se recalculan las calibraciones. Por eso en el texto se lee
+% \NCorridas y no un 25 que mañana es otro. La lista completa de macros
+% disponibles está al principio de generado/numeros.tex.
+%
+% Para compilar a mano:  pdflatex informe.tex  (dos veces, por el índice)
+% ===========================================================================
+\documentclass[11pt,a4paper]{article}
+\input{preambulo}
+
+\title{\color{azul}\bfseries Calibración en energía de cuatro centelladores
+       plásticos por borde Compton\\[2mm]
+       \normalsize\mdseries\color{black}
+       Campaña de \NCorridas{} corridas: Co-60 y Cs-137 a 1550--1700 V}
+\author{Mateo\thanks{Física Nuclear, Pontificia Universidad Católica de Chile.
+        Completar autoría y filiación antes de circular el documento.}}
+\date{\FechaInforme}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Se calibraron \NCorridas{} corridas de los \NDetectores{} detectores (A, B, C
+y D) tomadas entre junio y septiembre de 2026, convirtiendo el área del pulso
+en \mVns{} a energía \emph{depositada} en keV mediante ajuste del borde Compton
+contra la simulación de Geant4 de cada fuente. Todas se integran en la misma
+compuerta de \PostFijo{} ns tras el onset y se ajustan con el mismo modelo, la
+plantilla convolucionada sin más componentes. La ganancia sigue en los cuatro
+detectores una ley de potencia con el alto voltaje, $D \propto V^{b}$, con
+$b$ entre \BMin{} y \BMax{}, compatible con lo que se espera de un
+fotomultiplicador y muy preferida sobre una recta. En cambio la
+\emph{linealidad del eje} no cierra: en los \NPuntosTestA{} puntos de operación
+donde hay dos fuentes, las calibraciones de Cs-137 y Co-60 difieren entre
+\DesacMin\,\% y \DesacMax\,\% una vez descontado el quenching de Birks, con
+signo que cambia de un detector a otro, mientras que el error estadístico de
+cada calibración es del orden del \ErrRelMediano\,\%. El informe documenta el
+método paso a paso, las decisiones de análisis comunes a todas las corridas,
+cómo se lee cada tabla y cada figura, los controles que se hicieron para
+descartar que el desacuerdo sea un artefacto, y qué mediciones faltan para
+cerrarlo.
+\end{abstract}
+
+\tableofcontents
+\bigskip
+
+% ===========================================================================
+\section{Cómo leer este informe}
+\label{sec:comoleer}
+
+El informe entrega un número por corrida, la ganancia $D$, y dos análisis
+construidos sobre esos números. Para no tener que leerlo entero antes de
+encontrar lo que se busca, esto es el mapa.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Si la pregunta es\ldots} & \textbf{está en} & \textbf{lo entrega} \\
+\midrule
+Qué se midió y cuándo & \S\ref{sec:medido} & texto \\
+Qué es un pulso y cómo se integra & \S\ref{sec:pulsos} &
+   texto, figuras~\ref{fig:integracion} a~\ref{fig:area-espectro},
+   tabla~\ref{tab:pulsos} \\
+Por qué un plástico no tiene fotopico & \S\ref{sec:interaccion} &
+   texto, figura~\ref{fig:teoria-interaccion} \\
+De dónde sale la energía del borde & \S\ref{sec:cinematica} &
+   texto, tabla~\ref{tab:cinematica}, figura~\ref{fig:teoria-cinematica} \\
+Cómo funciona el NCC & \S\ref{sec:ncc} &
+   texto, figura~\ref{fig:teoria-ncc} \\
+Cómo funciona el recocido simulado & \S\ref{sec:sa} &
+   texto, figura~\ref{fig:teoria-sa} \\
+Cuánto se equivocan los métodos clásicos & \S\ref{sec:clasicos} &
+   tabla~\ref{tab:clasicos}, figura~\ref{fig:teoria-clasicos} \\
+De dónde sale la barra de error & \S\ref{sec:estadistica} &
+   tabla~\ref{tab:cierre}, figura~\ref{fig:teoria-estadistica} \\
+Qué hay en la simulación y qué le falta & \S\ref{sec:geant4} &
+   tabla~\ref{tab:simulacion}, figura~\ref{fig:simulacion} \\
+Cómo se obtiene $D$, paso a paso & \S\ref{sec:cadena} & texto \\
+Cuánto dio cada corrida & \S\ref{sec:calibraciones} & tabla~\ref{tab:calib} \\
+Si la calibración de un detector es lineal & \S\ref{sec:testA} &
+   tabla~\ref{tab:testA}, figuras~\ref{fig:cociente} y~\ref{fig:porpunto} \\
+Cómo se compara un detector con otro & \S\ref{sec:detectores} &
+   tablas~\ref{tab:testB} y~\ref{tab:detectores} \\
+Qué pasó con el detector D & \S\ref{sec:repro} &
+   tabla~\ref{tab:repro} \\
+Cómo se compara esto con el paper & \S\ref{sec:paper} &
+   tablas~\ref{tab:robustez} y~\ref{tab:paper} \\
+Cómo convertir un pulso medido a energía & \S\ref{sec:uso} & receta \\
+Qué NO se puede concluir todavía & \S\ref{sec:limites} & lista \\
+Qué significa cada símbolo & apéndice~\ref{ap:glosario} & glosario \\
+Qué archivo es cada cosa & apéndice~\ref{ap:archivos} & tabla \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\bigskip
+\noindent
+Tres convenciones que valen para todo el documento:
+
+\begin{itemize}
+\item \textbf{Las unidades.} El área del pulso está en \mVns{} (milivolt por
+      nanosegundo: es la integral del pulso, no su altura). La energía está en
+      keV \emph{depositados} en el centellador. Entonces $D$ va en \DkeV{} y su
+      inverso $1/D$ en keV por \mVns, que es el que se usa para convertir.
+\item \textbf{Ningún número de este texto está tipeado a mano.} Todos salen de
+      los datos al generar el documento (apéndice~\ref{ap:reproducir}). Si se
+      recalculan las calibraciones, el informe se rehace con los valores
+      nuevos y no hay forma de que el texto quede desactualizado respecto de
+      las tablas.
+\item \textbf{Los avisos en gris} marcan las cosas que hay que tener presentes
+      para no leer de más un resultado. No son notas al pie decorativas: cada
+      uno está porque el número de al lado se puede malinterpretar.
+\end{itemize}
+
+% ===========================================================================
+\section{Qué se midió}
+\label{sec:medido}
+
+\subsection{La campaña}
+
+Cuatro detectores (A, B, C y D), cada uno un centellador plástico leído por un
+fotomultiplicador, digitalizados con una placa DRS4. Tres voltajes nominales
+(1600, 1650 y 1700 V) y dos fuentes gamma, más una corrida de junio del
+detector A a 1550 V. En total \NCorridas{} corridas repartidas en cuatro
+sesiones:
+
+\begin{itemize}
+\item \textbf{23 de junio}: Co-60 del detector A a 1550 V, en XML, con su
+      fondo. Es la única corrida de la campaña con fondo propio además del
+      Cs-137 del detector A a 1600 V.
+\item \textbf{26 de agosto}: Cs-137 del detector A a los tres voltajes, en XML.
+\item \textbf{1 de septiembre}: Cs-137 de los cuatro detectores y Co-60 del A,
+      en formato binario del DRS4. Las tres corridas del detector D de esa
+      sesión están \textbf{descartadas}: el detector tenía la tierra mal
+      conectada (sección~\ref{sec:repro}).
+\item \textbf{2 y 8 de septiembre}: Co-60 del detector C (2-sep) y Co-60 más
+      Cs-137 del detector D (8-sep). Éstas son las corridas válidas del
+      detector D, ya con la tierra arreglada, y las únicas de toda la campaña
+      donde las dos fuentes se midieron el mismo día.
+\item \textbf{22 de septiembre}: Co-60 del detector B a los tres voltajes, en
+      binario. Era la medición que faltaba para que los cuatro detectores
+      tuvieran las dos fuentes. Se verificó que los archivos no fueran copias
+      de los de otro detector antes de incorporarlos, por lo que había pasado
+      el 10 de septiembre (sección~\ref{sec:limites}).
+\end{itemize}
+
+La fecha de cada corrida no se tipea: se lee de la fecha del propio archivo y
+aparece en todas las tablas. No es un dato decorativo. Dos fuentes medidas en
+sesiones distintas pueden no estar en el mismo punto de operación real aunque
+el voltaje nominal coincida, y eso es exactamente lo que hay que poder
+descartar en la sección~\ref{sec:testA}.
+
+\subsection{Qué es $D$ y por qué es lo único que se busca}
+
+El observable es el área del pulso: la integral de la señal del
+fotomultiplicador, en \mVns. Es proporcional a la carga que sale del tubo y por
+lo tanto a la luz que produjo el centellador. Calibrar es encontrar el factor
+que lleva esa área a energía:
+\[
+   \text{área [\mVns]} \;=\; D \cdot \text{energía [\keVdep]},
+   \qquad\text{o al revés,}\qquad
+   E \;=\; \frac{\text{área}}{D}.
+\]
+
+La recta pasa por el \textbf{origen}, sin ordenada: área cero corresponde a
+energía cero. No es una simplificación cómoda, es parte del método (la relación
+canal--energía del modelo es $E_{\text{eff}} = E\cdot B/E_{\max}$), y por eso
+hay un solo parámetro que ajustar en vez de dos. Que esa hipótesis se sostenga
+o no es justamente lo que testea la sección~\ref{sec:testA}.
+
+\begin{aviso}
+\textbf{Escala.} Todo este informe está en energía \emph{depositada}
+(plantilla \texttt{\Rama} de la simulación), no en luz. La diferencia no es
+cosmética: el área mide luz, y la luz por keV depositado depende de la energía
+porque el quenching de Birks todavía no saturó. Las $D$ de este informe se
+llevan ese factor adentro y \textbf{no} son comparables con las $D$ en keVee
+(keV electrón-equivalentes) del resto del proyecto.
+\end{aviso}
+
+% ===========================================================================
+\section{Del pulso al espectro}
+\label{sec:pulsos}
+
+Todo lo que el informe llama «área» sale de esta sección. Antes de que haya
+un borde Compton que ajustar hay un pulso eléctrico digitalizado, y la
+decisión de qué número se le asigna a ese pulso es la que fija el observable.
+Acá está qué registra el digitalizador, cómo se convierte cada registro en un
+área, por qué la compuerta es la que es, y cómo esas áreas se vuelven el
+espectro que después se ajusta. Los pulsos que se muestran son reales, de la
+corrida \EjCorrida{} (la misma que ilustra el NCC en la
+sección~\ref{sec:ncc}); los números por corrida están en la
+tabla~\ref{tab:pulsos}.
+
+\subsection{Qué registra el digitalizador}
+
+Cada evento es un registro de \Muestras{} muestras de la señal del
+fotomultiplicador, \Registro{} ns a \Muestreo{} GS/s, en mV. El pulso es
+negativo (es la corriente del ánodo sobre la carga del digitalizador) y la
+placa dispara sobre la propia señal: cuando cruza el umbral del discriminador
+se guarda el registro con el pulso en una posición fija, que en la corrida de
+ejemplo es \EjOnsetMediano{} ns desde el inicio (panel (a) de la
+figura~\ref{fig:integracion}). Fija en promedio, no evento a evento: el
+discriminador tiene \emph{walk}, los pulsos chicos cruzan el umbral más tarde
+que los grandes, y entre los percentiles 5 y 95 el onset se mueve de
+\EjOnsetCinco{} a \EjOnsetNoventaycinco{} ns. Una corrida típica tiene
+\EventosTipico{} registros.
+
+Tres cosas del registro que el análisis tiene que respetar y que no son
+obvias mirando un pulso:
+
+\begin{itemize}
+\item \textbf{El eje de tiempo no es uniforme.} El DRS4 muestrea con un anillo
+      de celdas de capacitores y cada celda tiene su propio ancho: el paso
+      entre muestras vale \DtMedio{} ns en promedio pero va de \DtMin{} a
+      \DtMax{} ns (percentiles 1 y 99) de una celda a la siguiente, y cambia
+      evento a evento con la celda en que cayó el trigger. El archivo trae el
+      tiempo de cada muestra, y toda integral se hace sobre ese eje, nunca
+      multiplicando por un paso constante. Las corridas de la sesión del 26 de
+      agosto se guardaron sin esa calibración, con un eje uniforme; el análisis
+      no distingue los dos casos porque integra siempre sobre el eje que viene.
+\item \textbf{Las celdas de los extremos no son señal.} La primera y la última
+      del anillo dan espigas de decenas de mV; se descartan \RecorteBordes{}
+      muestras de cada lado antes de mirar nada. Y el tiempo de la primera
+      muestra no es cero ni es el mismo entre sesiones, así que todo se mide
+      desde el inicio del registro y no en el eje absoluto del archivo.
+\item \textbf{Dos formatos, un solo lector.} Las sesiones de junio y agosto
+      están en el XML del DRSOSC; las de septiembre, en el binario del DRS4,
+      que no tiene extensión. El formato se decide por los primeros bytes del
+      archivo y el canal que contiene la señal se lee del primer evento, porque
+      cambió entre sesiones y leer el canal equivocado devuelve cero pulsos sin
+      ningún error.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{integracion_pulso.pdf}
+\caption{Del registro al área, sobre la corrida \EjCorrida. (a) Treinta
+registros tal como vienen del digitalizador: el pulso cae siempre cerca del
+mismo lugar, con el \emph{walk} del trigger marcado (mediana y percentiles 5 a
+95 del onset). (b) Un pulso de amplitud mediana con cada paso de la
+integración: la zona verde es de donde sale la línea base (mediana de las
+muestras hasta \GuardaBase{} ns antes del onset), la línea punteada es el
+\FracOnset\,\% de la amplitud cuyo cruce define el onset, la zona naranja es la
+compuerta $[-\EjPre, +\PostFijo]$~ns respecto del onset y el área roja es lo
+que se integra. (c) El pulso promedio de \EjNForma{} eventos alineados por su
+onset y normalizados a amplitud 1, con la compuerta común y el punto donde el
+pulso se hunde en el ruido. (d) La carga acumulada del pulso promedio, en
+porcentaje de la que llega a acumularse en el registro: la compuerta recoge
+el \EjCarga\,\%.}
+\label{fig:integracion}
+\end{figure}
+
+\subsection{De un registro a un número}
+\label{sec:area}
+
+El panel (b) de la figura~\ref{fig:integracion} es un pulso real con cada paso
+marcado. En el orden en que se ejecutan:
+
+\begin{enumerate}
+\item \textbf{Dos filtros antes de integrar.} Un registro idéntico al anterior
+      se descarta (el DRSOSC a veces vuelca dos veces el mismo evento, y
+      contarlo dos veces mete un pico falso en el espectro), y un registro cuya
+      excursión pico a pico no llega a \UmbralRuido{} mV no tiene pulso. Los dos
+      cortes se cuentan, y en la corrida de ejemplo no descartan ninguno.
+\item \textbf{Localizar el pulso con una referencia provisoria.} La mediana del
+      registro entero sirve de línea base preliminar, porque el pulso ocupa una
+      décima parte de las muestras y la mediana no lo ve. Respecto de ella se
+      busca la excursión máxima, que da el pico y la polaridad (deducida, no
+      supuesta), y desde el pico se retrocede hasta el último cruce del
+      \FracOnset\,\% de la amplitud: ése es el \textbf{onset}. Se retrocede
+      desde el pico y no se avanza desde el inicio del registro porque una
+      fluctuación de la línea base que pase el umbral dispararía un onset falso
+      decenas de ns antes del pulso.
+\item \textbf{La línea base, relativa al onset.} Es la mediana de las muestras
+      anteriores a \GuardaBase{} ns antes del onset (zona verde). Mediana y no
+      media porque cuesta lo mismo y es inmune a que se cuele el pie de un
+      pulso anterior. Del mismo tramo sale el ruido, como desviación robusta
+      ($1.4826$ veces la mediana de las desviaciones absolutas), que es la
+      vara de todos los umbrales que siguen: ningún criterio depende de cuántos
+      mV de ruido tiene este detector en particular. Si quedan menos de
+      \MinBase{} muestras antes del onset, la línea base se toma de la cola
+      posterior a la compuerta y el evento queda marcado, pero \emph{no} se
+      descarta: rechazar por posición del onset sería un corte que depende de la
+      amplitud, porque el \emph{walk} pone el onset más tarde en los pulsos
+      chicos, y un corte dependiente de la amplitud deforma justo lo que se
+      quiere calibrar.
+\item \textbf{Volver a medir con la línea base buena.} Pico, amplitud y onset
+      se recalculan respecto de la línea base definitiva. Una amplitud por
+      debajo de cinco veces el ruido se marca como «sin pulso».
+\item \textbf{La compuerta}, $[\text{onset} - \text{pre},\ \text{onset} +
+      \text{post}]$, anclada al onset \emph{de ese evento}. El \emph{pre} se
+      mide sobre cada archivo (sección~\ref{sec:compuerta}; vale entre
+      \PreMin{} y \PreMax{} ns en la campaña) y es zona de línea base, así que
+      aporta ruido pero no señal; el \emph{post} es \PostFijo{} ns para todas
+      las corridas. Anclar al onset y no a un tiempo fijo del registro es lo
+      que hace a la medición inmune al \emph{walk} y al jitter del trigger: la
+      ventana viaja con el pulso.
+\item \textbf{Integrar.} El área es la integral trapezoidal de la señal menos
+      la línea base dentro de la compuerta, sobre el eje de tiempo real del
+      registro, con el signo dado vuelta para que sea positiva:
+      \[
+         \text{área} \;=\; \int_{\text{onset}-\text{pre}}^{\text{onset}+\text{post}}
+         \big[\,b - v(t)\,\big]\,dt \qquad [\text{mV}\cdot\text{ns}],
+      \]
+      con $b$ la línea base. Es la carga que entregó el fotomultiplicador en
+      esa ventana, a menos de la impedancia de entrada.
+\item \textbf{Marcar, no descartar.} Cada evento sale con banderas:
+      \emph{saturado} (alguna muestra alcanzó los \VSatura{} mV, el tope del
+      digitalizador), \emph{truncado} (la compuerta se sale del registro por
+      cualquiera de los dos extremos), \emph{sin pre-pulso} (la línea base
+      salió de la cola) y \emph{sin pulso}. Qué banderas descartan se decide
+      al histogramar, no acá, y es la misma decisión para muestra y fondo: si
+      no, los dos histogramas tendrían eficiencias distintas y la resta no
+      significaría nada. Se descartan los saturados, los truncados y los sin
+      pulso; los «sin pre-pulso» se conservan, por la razón del punto 3.
+\end{enumerate}
+
+En la corrida de ejemplo, de \EjEventos{} registros quedan \EjBuenos{}
+(\EjDescartados\,\% descartados); en la campaña la fracción descartada tiene
+mediana \DescartadosMediana\,\% y máximo \DescartadosMax\,\% (el Co-60 de
+junio, donde una parte de los pulsos cae al principio del registro, antes de
+la posición del trigger, y la compuerta se sale por ese extremo). La saturación no pasa de
+\SaturadosMax\,\% en ninguna corrida.
+
+\begin{aviso}
+La línea base relativa al onset no es un refinamiento: es la corrección más
+grande que se le hizo a esta cadena. Una versión anterior la promediaba sobre
+el primer 20\,\% del registro, y en la corrida de junio el pulso arranca
+apenas después de ese tramo: la ventana de línea base se comía la subida del
+propio pulso, el sesgo se multiplicaba al integrar, y como el jitter del
+trigger movía el pulso evento a evento, cada uno perdía una fracción distinta
+de su carga. Eso ensanchaba el espectro hasta duplicar la resolución aparente,
+y cambiaba la ganancia medida en un factor mayor que cualquier otro efecto de
+este informe. La regla que queda es que nada del cálculo del área usa una
+ventana absoluta del registro.
+\end{aviso}
+
+\subsection{La compuerta: cómo se mide y por qué es corta}
+\label{sec:compuerta}
+
+Para saber cuánto dura el pulso hay que mirarlo con menos ruido del que tiene
+un evento solo. Se toman los primeros \NVentana{} registros del archivo, se
+quedan los de amplitud mayor que \AmpMinimaForma{} mV (los chicos tienen el
+onset ruidoso; esto es sólo para medir la forma, el área después se calcula
+sobre todos), se alinea cada uno por su onset interpolando sobre una grilla
+común, se lo normaliza por su amplitud y se promedia. El resultado es la forma
+del pulso, panel (c) de la figura~\ref{fig:integracion}: llega al pico
+\EjPico{} ns después del onset, tiene \EjFwhmPulso{} ns de ancho a media
+altura y una cola larga con un pequeño rebote. Sobre esa forma promedio se aplica
+el criterio de convergencia: el pulso «empezó» en el último instante antes del
+pico en que la señal estuvo quieta (por debajo de \KConv{} veces el ruido del
+promedio) durante \TramoConv{} ns seguidos, y «terminó» en el primer instante
+después del pico en que vuelve a estarlo. Lo primero da el \emph{pre}; lo
+segundo, la duración que el pulso pide: en la corrida de ejemplo,
+\EjPostMedido{} ns, donde ya acumuló el \EjCargaPostMedido\,\% de su carga
+(panel (d)).
+
+Ese \emph{post} medido no es el que se usa, por dos razones que conviene
+separar:
+
+\begin{itemize}
+\item \textbf{El registro no siempre lo contiene.} Después del onset
+      sobran entre \RegistroMin{} y \RegistroMax{} ns según la corrida
+      (columna \emph{Registro} de la tabla~\ref{tab:pulsos}), y las más
+      cortas son las de septiembre, donde el trigger quedó tarde en el
+      registro. Cuando el pulso
+      pide más de lo que hay, la medición recorta el \emph{post} al espacio
+      disponible en los eventos de amplitud sobre la mediana (los chicos tienen
+      el onset más tarde por el \emph{walk} y sesgarían el percentil) menos
+      \MargenRegistro{} ns de margen. Un evento cuya compuerta se sale del
+      registro pierde una fracción de carga que depende de cuándo llegó, que
+      es exactamente el error que la compuerta anclada al onset existe para
+      evitar.
+\item \textbf{Cada archivo pediría una compuerta distinta}, y dos corridas
+      integradas con compuertas distintas recogen fracciones distintas de la
+      carga, lo que entra derecho en $D$. Para comparar corridas la compuerta
+      tiene que ser la misma.
+\end{itemize}
+
+De ahí la decisión de la sección~\ref{sec:decisiones}: \emph{post} $=
+\PostFijo$ ns para las \NCorridas{} corridas. Corta, además, porque pasado el
+grueso del pulso seguir integrando agrega línea base y su ruido más que señal.
+El precio está en el panel (d): la compuerta recoge el \EjCarga\,\% de la carga
+del pulso registrado, y en la campaña entre \CargaMin{} y \CargaMax\,\%
+(columna \emph{Carga} de la tabla~\ref{tab:calib}).
+
+\paragraph{Ese rango no es una diferencia entre detectores.} La
+figura~\ref{fig:pulsos-detectores} superpone el pulso promedio de los cuatro
+detectores a 1600~V con Cs-137: la subida, el pico y la caída coinciden. Lo que
+varía de una corrida a otra es cuánto registro hay después del onset, y como
+la fracción «de la carga registrada» se normaliza a lo que el registro
+contiene, una corrida con \RegistroMin{} ns de registro parece recoger más que
+una con \RegistroMax. Normalizando en cambio a la carga acumulada hasta
+\TComun{} ns del onset, que todos los registros contienen, la compuerta recoge
+entre \CargaComunMin{} y \CargaComunMax\,\% en las \NCorridas{} corridas
+(última columna de la tabla~\ref{tab:pulsos}). O sea que la compuerta común
+mide en todas la misma porción del mismo pulso, que es lo que hace comparables
+las $D$ entre detectores, voltajes y sesiones aunque el trigger haya quedado en
+lugares distintos.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{pulsos_detectores.pdf}
+\caption{Los cuatro detectores a 1600~V con Cs-137. (a) El pulso promedio de
+cada uno, alineado por onset y normalizado a amplitud 1: la forma es la misma.
+(b) La carga acumulada, relativa a la acumulada hasta \TComun{} ns del onset
+(línea punteada vertical), que es el tramo que todos los registros contienen;
+cada curva llega hasta donde llega su registro, marcado con una barra. Los
+puntos son lo que recoge la compuerta común de \PostFijo{} ns.}
+\label{fig:pulsos-detectores}
+\end{figure}
+
+\subsection{Control: la forma del pulso no depende de su tamaño}
+\label{sec:forma-amplitud}
+
+Una compuerta que recoge una fracción fija de la carga sólo sirve si la forma
+del pulso es la misma para todos los tamaños. Si un pulso grande fuera
+proporcionalmente más largo que uno chico, la compuerta le cortaría una
+fracción distinta y el eje del espectro dejaría de ser lineal, y ninguna
+calibración posterior lo arreglaría. El test es barato y no necesita saber la
+energía: el cociente área/amplitud de cada evento en función de la amplitud
+tiene que ser plano.
+
+El panel (a) de la figura~\ref{fig:area-espectro} lo muestra para la corrida
+de ejemplo. De punta a punta del rango de amplitudes la mediana por tramo se
+mueve \EjVariacionForma\,\%, y casi todo eso está en los pulsos más chicos:
+por encima de la amplitud mediana la variación es \EjVariacionAlta\,\%. En la
+campaña, la variación de punta a punta tiene mediana \VariacionFormaMediana\,\%
+y máximo \VariacionFormaMax\,\%; restringida a la mitad de arriba, mediana
+\VariacionAltaMediana\,\% y máximo \VariacionAltaMax\,\%. La caída hacia los
+pulsos chicos no es necesariamente de la forma: la amplitud es una sola
+muestra, con el ruido de una sola muestra, y el onset al \FracOnset\,\% se
+mide sobre unos pocos mV de señal; las dos cosas empeoran justo ahí. Lo que
+el test acota es cuánto puede deformar el eje una compuerta corta, y el
+control de la tabla~\ref{tab:control} (75~ns contra \PostFijo) dice por otro
+camino que el desacuerdo entre fuentes de la sección~\ref{sec:testA} no viene
+de acá.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{area_a_espectro.pdf}
+\caption{De las áreas al espectro, corrida \EjCorrida. (a) Área contra
+amplitud, evento por evento, con la mediana de área/amplitud por tramo de
+amplitud. (b) Los tres histogramas con el binning común: la muestra, el fondo
+ya normalizado por tiempo vivo (con $k_f = \EjKf$ queda muy por debajo de la
+muestra: es despreciable en esta corrida, y el panel lo muestra en vez de
+afirmarlo) y el neto, con el fin de la subida del trigger y la ventana de
+ajuste que después elige el NCC.}
+\label{fig:area-espectro}
+\end{figure}
+
+\subsection{De las áreas al espectro neto}
+\label{sec:areas-espectro}
+
+Con un área por evento, el espectro es un histograma. Lo que hay que decidir
+es el eje, la normalización y el error, y las tres decisiones se ven en el
+panel (b) de la figura~\ref{fig:area-espectro}.
+
+\paragraph{El eje.} \NBins{} bines entre cero y \RangoFactor{} veces el
+percentil \RangoPercentil{} de las áreas de la muestra (\EjRangoMax{} mV$\cdot$ns
+en la corrida de ejemplo, o sea bines de \EjAnchoBin{} mV$\cdot$ns). El tope
+se fija así y no con el área máxima porque unos pocos eventos de área enorme
+(apilamientos, cósmicos) estirarían el rango y dejarían toda la física apretada
+en los primeros bines. Muestra y fondo se histograman con \emph{el mismo} eje:
+si cada uno tuviera el suyo, restarlos sería restar intervalos distintos de
+mV$\cdot$ns.
+
+\paragraph{El tiempo vivo.} Para restar el fondo hay que saber cuánto tiempo
+estuvo midiendo cada corrida, y el reloj de pared no lo dice: el programa de
+adquisición no alcanza a guardar todos los eventos que la placa dispara. La
+placa lleva un contador (\emph{scaler}) con la tasa real de disparo, que se
+guarda con cada evento; integrarlo da cuántos triggers hubo de verdad, y el
+cociente entre los eventos guardados y ésos es la fracción del tiempo en que
+la adquisición estuvo viva. En la corrida de ejemplo el scaler marca
+\EjScaler{} kHz mientras se guardan \EjTasaGuardada{} eventos por segundo:
+\EjTVivo{} s vivos de \EjTPared{} de pared, el \EjViva\,\%. Las corridas de
+Cs-137 están vivas entre el \VivaCsMin{} y el \VivaCsMax\,\% del tiempo; las de
+Co-60, con una tasa de disparo mucho menor, entre el \VivaCoMin{} y el
+\VivaCoMax\,\%. Las marcas de tiempo de cada evento no sirven para esto: el
+DRSOSC las escribe en ráfagas y miles de eventos comparten el mismo
+milisegundo.
+
+\paragraph{La resta.} Los dos histogramas se llevan al menor de los dos
+tiempos vivos, para que ninguno se amplifique: $k_m = t_{\min}/t_{\text{vivo},m}$ y
+$k_f = t_{\min}/t_{\text{vivo},f}$, y el neto es $k_m N_m - k_f N_f$. En la
+corrida de ejemplo el fondo tiene \EjNFondo{} pulsos en \EjTVivoFondo{} s
+vivos contra \EjTVivo{} de la muestra, así que entra con $k_f = \EjKf$: es la
+curva gris del panel (b), órdenes de magnitud por debajo. Normalizando por
+tiempo de pared el mismo fondo entraría con $k_f = \EjKfPared$, \EjFactorVivo{}
+veces más, y la resta dejaría el espectro negativo. Sólo dos corridas tienen fondo propio; en las demás el neto
+es el crudo, y la sección~\ref{sec:decisiones} dice por qué no se les presta
+el fondo de otra sesión.
+
+\paragraph{El error.} Cada histograma crudo es Poisson, así que la varianza del
+neto es $k_m^2 N_m + k_f^2 N_f$, con piso 1 para que un bin vacío no tenga
+error cero. Sin esta barra no hay $\chi^2$, ni bondad de ajuste, ni error
+sobre $D$: es la diferencia entre un número y un número con incertidumbre.
+Los bines que quedan negativos después de restar se conservan: son
+fluctuaciones legítimas y recortarlos a cero sesgaría el ajuste hacia arriba.
+
+\paragraph{Lo que no es física.} Por debajo del umbral del discriminador el
+espectro es la curva de eficiencia del trigger, que sube de cero a uno, y no
+hay plantilla que la contenga. El fin de esa subida se detecta en el propio
+espectro como el primer máximo del neto suavizado (la eficiencia crece y todo
+lo que hay debajo del borde decrece, así que donde una deja de crecer le pasa
+el mando a la otra); en la corrida de ejemplo cae en \EjUmbral{} mV$\cdot$ns y
+es un piso que ninguna ventana de ajuste puede cruzar hacia abajo.
+
+\begin{center}
+\captionof{table}{Los pulsos de cada corrida: lo que pasó antes del ajuste.}
+\label{tab:pulsos}
+{\footnotesize\setlength{\tabcolsep}{3.5pt}\input{generado/tabla_pulsos}}
+\end{center}
+
+% ===========================================================================
+\section{Marco teórico}
+\label{sec:fisica}
+
+Esta sección es el fundamento de lo que hace la cadena: cómo interactúa un
+fotón con un plástico y por qué eso deja un continuo sin fotopico, de dónde
+sale la energía del borde, qué forma tiene el continuo (Klein-Nishina) y por
+qué el borde medido no es un escalón; después, los dos algoritmos que el
+método usa para encontrarlo sin intervención, la correlación cruzada
+normalizada y el recocido simulado, y la estadística con que se le pone una
+barra al resultado. La implementación va después
+(sección~\ref{sec:cadena}); acá está el porqué.
+
+\subsection{Cómo interactúa un fotón con la materia}
+\label{sec:interaccion}
+
+Un fotón de las energías que emiten las fuentes de esta campaña (entre 0.6 y
+1.3 MeV) puede hacer tres cosas al atravesar un material, y cuál de las tres
+domina depende del número atómico $Z$ del material y de la energía
+$E_\gamma$~\cite{knoll2010}:
+
+\begin{itemize}
+\item \textbf{Absorción fotoeléctrica.} El fotón desaparece y le entrega toda
+      su energía a un electrón ligado (menos su energía de ligadura, que en
+      carbono es de unos cientos de eV y acá no cuenta). Es lo que produce el
+      \emph{fotopico}. La probabilidad crece brutalmente con $Z$ (como
+      $Z^4$ a $Z^5$) y cae rápido con la energía (como $E_\gamma^{-3}$ a
+      $E_\gamma^{-3.5}$): es el proceso de los materiales pesados y de las
+      energías bajas.
+\item \textbf{Dispersión Compton.} El fotón choca con un electrón, le cede
+      una parte de su energía y sigue en otra dirección, con menos energía.
+      Cuánta parte cede depende del ángulo, y ese reparto es el tema de la
+      sección siguiente. La probabilidad por átomo va como $Z$ (un electrón
+      es un electrón), así que por gramo es casi la misma en cualquier
+      material, y decrece suavemente con la energía.
+\item \textbf{Producción de pares.} Por encima de $2 m_e c^2 = 1022$ keV el
+      fotón puede convertirse en un par electrón-positrón en el campo de un
+      núcleo. Va como $Z^2$ y recién se vuelve importante a varios MeV. Para
+      el Co-60 está apenas por encima del umbral y es despreciable.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{teoria_interaccion.pdf}
+\caption{Coeficientes másicos de atenuación por proceso, de la base de datos
+XCOM de NIST~\cite{xcom}: (a) el plástico BC-404 (C$_9$H$_{10}$, que XCOM
+reparte en \XcomFraccionH{} de hidrógeno y \XcomFraccionC{} de carbono en
+peso, las mismas fracciones que usa la simulación), (b) NaI, un centellador
+inorgánico de alto $Z$, para comparar. Las líneas punteadas verticales son
+las tres líneas gamma de la campaña. En (a), la línea de trazos es la sección
+eficaz de Klein-Nishina de un electrón libre multiplicada por los electrones
+por gramo del plástico: por encima de 100 keV es indistinguible del
+``incoherente'' de la base de datos.}
+\label{fig:teoria-interaccion}
+\end{figure}
+
+La figura~\ref{fig:teoria-interaccion} lo muestra con datos y no con
+argumentos. En el plástico, a la energía del Cs-137 la absorción
+fotoeléctrica es $\FotoSobreComptonCs$ veces la Compton, y a la del Co-60,
+$\FotoSobreComptonCoB$: el fotoeléctrico deja de dominar en el plástico a
+\CruceFotoComptonPlastico{} keV, mientras que en el NaI sigue mandando hasta
+\CruceFotoComptonNaI{} keV y a 662 keV todavía vale \FotoSobreComptonNaICs{}
+veces la Compton. Un fotón de nuestras fuentes, dentro de un plástico, hace
+Compton o no hace nada.
+
+\paragraph{El plástico como bolsa de electrones libres.} Que la dispersión
+Compton dependa sólo del número de electrones se puede verificar en la misma
+figura: la sección eficaz de Klein-Nishina para \emph{un electrón libre}
+(sección~\ref{sec:kn}), multiplicada por los $\ElectronesPorGramo$ electrones
+por gramo del C$_9$H$_{10}$, reproduce el ``incoherente'' de XCOM a menos del
+\KNvsXcom\,\% entre 100 keV y 3 MeV. Por debajo de 100 keV se separan (hasta
+\KNvsXcomBajo\,\% a 10 keV), porque ahí la energía de ligadura de los
+electrones ya no es despreciable frente a la que el fotón les puede
+transferir. En el rango que importa acá, el electrón libre es una descripción
+exacta.
+
+\paragraph{Cuánto camina un fotón.} Con la densidad del BC-404
+(\DensidadBC{} g/cm$^3$) el camino libre medio es de \LibreCaminoCs{} cm a
+662 keV y \LibreCaminoCoB{} cm a 1332 keV. En los \LadoDetector{} cm del
+cilindro simulado (sección~\ref{sec:geant4}), un fotón del Cs-137 tiene un
+\ProbInteraccionCs\,\% de probabilidad de interactuar y uno del Co-60 un
+\ProbInteraccionCoB\,\%. Dos consecuencias: la mayoría de los fotones
+atraviesan el detector sin dejar nada, y el que sí dispersó sale con menos
+energía y con una probabilidad del mismo orden de volver a dispersar antes de
+escapar. Eso segundo es el \emph{scattering múltiple}, que llena la zona por
+encima del borde y que la sección~\ref{sec:lineshape} discute.
+
+\paragraph{Por qué no hay fotopico.} En un NaI, un fotón de 662 keV que
+entra puede absorberse de una vez (la absorción es \FotoSobreComptonNaICs{}
+veces la dispersión a esa energía) o dispersar
+una o varias veces y terminar absorbido: en los dos casos deposita toda su
+energía, y esos eventos se apilan en un pico angosto a $E_\gamma$, el
+fotopico, que es el punto de calibración de la espectrometría gamma clásica.
+En el plástico la absorción es $\FotoSobreComptonCs$ veces menos probable que
+la dispersión: el fotón cede una fracción de su energía, variable con el
+ángulo, y se va. Lo que se mide es un \emph{continuo}, y no hay ningún evento
+en $E_\gamma$. Ese continuo, sin embargo, tiene un extremo bien definido, y
+ese extremo es lo que se calibra.
+
+\subsection{Cinemática Compton}
+\label{sec:cinematica}
+
+Un fotón de energía $E_\gamma$ choca con un electrón en reposo y sale con
+energía $E'$ formando un ángulo $\theta$ con su dirección original. Con la
+conservación de la energía y de las dos componentes del momento, en unidades
+en que $p = E/c$ para el fotón y usando la relación relativista
+$E_e^2 = p_e^2c^2 + m_e^2c^4$ para el electrón, el resultado es una sola
+relación entre $E'$ y $\theta$:
+\[
+   E' \;=\; \frac{E_\gamma}{1 + \alpha\,(1 - \cos\theta)},
+   \qquad \alpha = \frac{E_\gamma}{m_e c^2},
+   \qquad m_e c^2 = \MasaElectron\text{ keV}.
+\]
+Es la fórmula de Compton~\cite{compton1923}. Lo que queda en el detector es
+lo que perdió el fotón, la energía cinética del electrón de retroceso:
+\[
+   T \;=\; E_\gamma - E' \;=\; E_\gamma\,
+   \frac{\alpha\,(1-\cos\theta)}{1 + \alpha\,(1-\cos\theta)}.
+\]
+$T$ crece con $\theta$ de manera monótona (panel (a) de la
+figura~\ref{fig:teoria-cinematica}) y alcanza su máximo cuando el fotón
+rebota hacia atrás, $\theta = 180°$, $\cos\theta = -1$:
+\[
+   E_{\max} \;=\; T(180°) \;=\; \frac{2\alpha}{1 + 2\alpha}\,E_\gamma .
+\]
+Ése es el \textbf{borde Compton}: por encima de $E_{\max}$ un solo choque no
+puede dejar energía. Su posición depende sólo de $E_\gamma$ y de $m_e c^2$,
+no del detector, y por eso sirve para calibrar.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{teoria_cinematica.pdf}
+\caption{(a) La energía del electrón de retroceso contra el ángulo del fotón
+dispersado para las tres líneas de la campaña; el punto a 180° es el borde
+Compton de cada una. (b) La sección eficaz de Klein-Nishina en ángulo, en
+unidades de $r_0^2$, y el límite de Thomson ($E_\gamma \to 0$): a más
+energía, más hacia adelante. (c) La sección eficaz total por electrón contra
+la energía: la fórmula analítica, la integral numérica de la expresión
+diferencial, y el ``incoherente'' de XCOM para el plástico dividido por sus
+electrones por gramo; la línea punteada es la sección eficaz de Thomson,
+\SigmaThomson{} barn.}
+\label{fig:teoria-cinematica}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Las tres líneas de la campaña: $\alpha$, el borde Compton, qué
+fracción de la energía del fotón es, la energía del fotón retrodispersado
+(que es lo que la Ec.~1 del paper imprime por error como borde) y la del
+fotón dispersado a 90°.}
+\label{tab:cinematica}
+\small
+\input{generado/tabla_cinematica}
+\end{table}
+
+\paragraph{Dos energías más que conviene tener a mano.} La
+tabla~\ref{tab:cinematica} lista, además del borde, la energía del fotón que
+rebotó a 180°, $E'(180°) = E_\gamma/(1+2\alpha)$. Es lo que le queda al fotón
+después de dejar el borde, y aparece por dos motivos. El primero es una
+errata del paper que usamos: su Ec.~1 imprime esa expresión como si fuera
+$E_{\max}$, o sea \EcUnoImpresaCs{} keV para el Cs-137 en vez de \BordeCs;
+sus propias figuras usan la correcta. El segundo es físico: los fotones que
+dispersan a ángulos grandes en lo que rodea al detector (la mesa, el
+portafuente, las paredes) vuelven hacia él con energías cerca de
+$E'(180°)$, y depositan en el plástico un continuo Compton propio, con su
+borde en $T(180°)$ de esa energía menor. Es el \emph{pico de
+retrodispersión} de la espectrometría gamma, y es uno de los candidatos al
+exceso de cuentas a bajo canal que las corridas reales muestran
+(sección~\ref{sec:decisiones}).
+
+\subsection{Dónde cae el borde}
+
+Con $E_{\max} = 2\alpha E_\gamma/(1+2\alpha)$, las fuentes de esta campaña
+tienen su borde en \BordeCs{} keV (Cs-137) y en \BordeCoA{} y \BordeCoB{} keV
+(las dos líneas del Co-60), tabla~\ref{tab:cinematica}. El Cs-137 aporta un
+borde solo; el Co-60, dos.
+
+\begin{aviso}
+El Co-60 emite dos líneas gamma de intensidad casi igual, así que su espectro
+tiene \emph{dos} bordes Compton solapados. No son dos puntos independientes de
+la recta de calibración: los dos salen del mismo $D$, y su separación la fija
+la física, no el ajuste. Por eso el Co-60 aporta un punto, no dos, y por eso
+hace falta una segunda fuente para testear linealidad.
+\end{aviso}
+
+\subsection{Klein-Nishina: cuántos electrones salen a cada ángulo}
+\label{sec:kn}
+
+La cinemática dice qué energía tiene el electrón si el fotón salió a
+$\theta$; no dice cuán probable es cada $\theta$. Eso lo da la sección eficaz
+diferencial de Klein y Nishina~\cite{klein1929}, calculada en 1929 con la
+ecuación de Dirac para un electrón \emph{libre y en reposo}:
+\[
+   \frac{d\sigma}{d\Omega} \;=\; r_0^2\, f^2\,
+   \frac{1+\cos^2\theta}{2}
+   \left[1 + \frac{\alpha^2 (1-\cos\theta)^2}
+                  {(1+\cos^2\theta)\,[1+\alpha(1-\cos\theta)]}\right],
+   \qquad f = \frac{1}{1 + \alpha(1-\cos\theta)},
+\]
+con $r_0$ el radio clásico del electrón. Tres cosas que conviene saber de
+ella:
+
+\begin{itemize}
+\item \textbf{El límite de baja energía es Thomson.} Con $\alpha \to 0$,
+      $f \to 1$ y el corchete $\to 1$, y queda
+      $d\sigma/d\Omega = r_0^2(1+\cos^2\theta)/2$, la dispersión clásica de
+      una onda electromagnética por una carga libre, simétrica entre adelante
+      y atrás. Integrada da $\sigma_T = 8\pi r_0^2/3 = \SigmaThomson$ barn.
+      A medida que $\alpha$ crece, el factor $f^2$ suprime los ángulos
+      grandes: la dispersión se vuelve hacia adelante (panel (b) de la
+      figura~\ref{fig:teoria-cinematica}) y la sección eficaz total baja (a
+      662 keV vale \SigmaKNCs{} barn, panel (c)).
+\item \textbf{``Libre y en reposo'' es una aproximación, y acá es buena.} Un
+      electrón ligado tiene energía de ligadura y momento; la primera corre
+      el umbral de la dispersión y el segundo borronea la relación entre
+      $\theta$ y $T$ (el \emph{ensanchamiento Doppler} del perfil Compton).
+      En carbono e hidrógeno las energías de ligadura son de cientos de eV o
+      menos, contra las decenas de keV de resolución del detector: el efecto
+      está por debajo de lo que se puede ver, y la
+      figura~\ref{fig:teoria-interaccion} lo confirma comparando con la base
+      de datos, que sí incluye la ligadura.
+\item \textbf{De ángulo a energía: el jacobiano.} Lo que se mide es $T$, no
+      $\theta$, así que hay que reescribir la sección eficaz por unidad de
+      energía del electrón. Como $T$ es función monótona de $\theta$ y el
+      problema tiene simetría azimutal, $d\Omega = 2\pi\,\sin\theta\,d\theta =
+      2\pi\,d(\cos\theta)$, y
+      \[
+         \frac{d\sigma}{dT} \;=\; \frac{d\sigma}{d\Omega}\,
+         2\pi\,\left|\frac{d\cos\theta}{dT}\right|,
+         \qquad
+         \frac{dT}{d\cos\theta} \;=\; -\,\frac{E_\gamma\,\alpha}
+                                            {[1 + \alpha(1-\cos\theta)]^2},
+      \]
+      de modo que $d\sigma/dT = 2\pi\,(d\sigma/d\Omega)\,
+      [1+\alpha(1-\cos\theta)]^2/(E_\gamma\alpha)$, con $\cos\theta$
+      despejado de $T$. Sustituyendo y ordenando se llega a la expresión en
+      energía que usa el paper (sección~\ref{sec:lineshape}). El factor
+      $[1+\alpha(1-\cos\theta)]^2$ crece hacia $\theta = 180°$: es el que
+      convierte una distribución angular que decrece hacia atrás en una
+      distribución en energía que \emph{crece} hacia el borde, la
+      acumulación que después va a importar.
+\end{itemize}
+
+\subsection{Por qué el borde medido no es un escalón}
+
+La teoría (la sección eficaz de Klein-Nishina) predice un corte abrupto en
+$E_{\max}$. Lo que se mide es una caída gradual, por tres razones que se suman:
+
+\begin{itemize}
+\item \textbf{La resolución del detector.} El número de fotones de centelleo,
+      el número de fotoelectrones que producen y la ganancia de cada etapa del
+      fotomultiplicador fluctúan evento a evento. El efecto neto es un
+      borroneado aproximadamente gaussiano, y es el parámetro
+      $\sigma_{\text{rel}}$ del ajuste.
+\item \textbf{El scattering múltiple.} Un fotón puede dispersar dos o tres
+      veces adentro del centellador antes de escapar, y entonces deposita más
+      energía que la del borde. Eso llena la zona por encima de $E_{\max}$, que
+      la teoría de un solo scattering deja vacía. No es gaussiano y no se puede
+      absorber subiendo $\sigma$: es la razón principal de usar una plantilla
+      de Geant4 en lugar de la fórmula analítica.
+\item \textbf{El quenching de Birks.} La luz producida por unidad de energía
+      depositada no es constante: baja a energías bajas. Está en la simulación,
+      y es lo que separa la escala de energía depositada de la de luz.
+\end{itemize}
+
+Ajustar la forma entera contra un modelo que contiene esas tres cosas es lo que
+distingue este método de los clásicos (tomar el 50\,\% de la altura del borde,
+o el mínimo de la derivada), que sobreestiman sistemáticamente la posición del
+borde porque la lineshape real no es un escalón.
+
+\subsection{La lineshape y el modelo directo}
+\label{sec:lineshape}
+
+La forma del continuo la da la sección eficaz de Klein-Nishina de la
+sección~\ref{sec:kn}, escrita en ángulo sólido para un fotón de energía
+$h\nu$ (el paper usa $h\nu$ donde acá se escribió $E_\gamma$).
+Lo que se mide, sin embargo, no es el ángulo sino la energía que queda en el
+centellador, que es la del electrón de retroceso. Cambiando de variable con el
+jacobiano de la sección~\ref{sec:kn} se llega a la forma que usa el paper (su
+Ec. 10):
+\[
+   \frac{d\sigma}{dE} \;=\; \frac{A\,\pi r_0^2}{\alpha^2\, m_0c^2}
+   \left[\,2 + \left(\frac{E}{h\nu - E}\right)^{\!2}
+   \left(\frac{1}{\alpha^2} - \frac{2\,(h\nu-E)}{\alpha E}
+         + \frac{h\nu-E}{h\nu}\right)\right],
+   \qquad 0 < E \le E_{\max},
+\]
+y cero fuera de ese intervalo. Ese corte en $E_{\max}$ \textbf{es} el borde
+Compton. La constante $A$ absorbe el prefactor: para ajustar una forma sólo
+importa la forma, no la normalización.
+
+\begin{aviso}
+Las dos expresiones describen el mismo proceso, así que integrar la primera
+sobre ángulo sólido y la segunda sobre energía tiene que dar la misma sección
+eficaz total. Se verificó: coinciden a seis decimales para 500, 662, 1000 y
+2000 keV. Es la única forma de estar seguro de que el jacobiano está bien.
+\end{aviso}
+
+El espectro medido no es esa curva sino su versión deformada por el detector.
+El modelo directo tiene dos pasos:
+
+\begin{enumerate}
+\item \textbf{Del eje de energía al eje medido.} Con el mapa por el origen,
+      $ch = D\,E$, la lineshape evaluada en $ch/D$ es la misma curva
+      reexpresada en \mVns. Ése es el único parámetro que relaciona los dos
+      ejes, y es el que se busca.
+\item \textbf{La resolución.} Se convoluciona con una gaussiana normalizada,
+      \[
+         G(E) \;=\; \frac{1}{\sigma\sqrt{2\pi}}\,
+                    e^{-E^2/(2\sigma^2)},
+      \]
+      lo que da el modelo completo
+      $S(ch) = A\,[\,P(ch/D) \otimes G(\sigma)\,]$. El kernel se normaliza a
+      suma 1 y no a integral 1 porque se aplica sobre un histograma: así la
+      convolución conserva las cuentas y $A$ y $\sigma$ quedan desacoplados
+      (ensanchar no cambia el número total de eventos).
+\end{enumerate}
+
+En este informe $P$ no es la fórmula analítica sino el histograma de la
+simulación de Geant4, que ya trae adentro el scattering múltiple, el escape y
+el quenching. La fórmula de arriba es lo que la simulación reproduce cuando
+sólo hay un scattering, y sirve para entender qué forma tiene el borde y por
+qué el corte es abrupto antes de la convolución.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{teoria_ncc.pdf}
+\caption{(a) La lineshape de Klein-Nishina para las dos fuentes: plateau,
+acumulación creciente y corte abrupto en el borde (líneas punteadas). El Co-60
+muestra sus dos bordes. (b) La misma curva convolucionada con la resolución
+medida en una de nuestras corridas: el corte se convierte en una caída gradual
+y el segundo borde del Co-60 casi desaparece como estructura separada. (c) El
+barrido del NCC sobre esa misma corrida: $\rho$ contra el canal de prueba del
+borde, con un máximo claro, y en línea de trazos el borde que devuelve el
+ajuste completo.}
+\label{fig:teoria-ncc}
+\end{figure}
+
+\subsection{Los métodos clásicos y su sesgo}
+\label{sec:clasicos}
+
+Antes de que existiera la costumbre de ajustar la lineshape entera, la posición
+del borde se leía directamente del espectro. Conviene conocer esas recetas por
+dos razones: son la vara contra la que el paper mide su método (su Fig.~4), y
+lo que falla en ellas es exactamente lo que el ajuste de la sección
+anterior corrige. Tres, de la más ingenua a la menos:
+
+\begin{itemize}
+\item \textbf{El 50\,\% de altura.} Se toma el canal en que el flanco
+      descendente cae a la mitad del máximo. Es lo que se hace a ojo, y fue
+      la práctica habitual hasta que Knox y Miller~\cite{knox1972} midieron,
+      con electrones de energía conocida en un NE-213, que el borde real no
+      cae a la mitad sino cerca del 89\,\% de la altura. Dietze y
+      Klein~\cite{dietze1982} cerraron la discusión comparando el espectro con
+      una simulación Monte Carlo convolucionada con la resolución, que es en
+      esencia lo que hace este informe.
+\item \textbf{El mínimo de la derivada} (el ``método de la diferencia'' del
+      paper). El borde es el canal donde el espectro cae más rápido, o sea el
+      mínimo de $dN/d\text{canal}$. Sobre datos con ruido la derivada hay que
+      calcularla sobre el espectro suavizado, y cuánto se suaviza pasa a ser
+      un parámetro del método: poco, y el mínimo lo elige el ruido; mucho, y el
+      flanco se corre.
+\item \textbf{El escalón gaussiano} (el ``método FWHM gaussiano'' del paper).
+      Se ajusta al flanco un escalón borroneado por una gaussiana, una función
+      error complementaria más un fondo lineal, y se toma el punto medio del
+      escalón ajustado. De paso el ajuste entrega el ancho, que es de donde
+      sale el nombre.
+\end{itemize}
+
+\paragraph{Por qué los tres se equivocan, y en la misma dirección.} Si el
+borde fuera un escalón perfecto borroneado por una gaussiana, los tres darían
+exactamente lo mismo: la derivada de ese escalón es una gaussiana centrada en
+el escalón, y su punto de media altura cae ahí también. Pero la lineshape de
+Klein-Nishina no es un escalón (figura~\ref{fig:teoria-ncc}, panel a): tiene
+una \emph{acumulación creciente} antes del borde. Al borronearla, esa pendiente
+de fondo corre el punto de media altura, el mínimo de la derivada y el centro
+del escalón ajustado hacia arriba en canal, y tanto más cuanto más ancha es la
+resolución. Ninguna de las tres recetas contiene esa forma, así que ninguna
+puede corregirla.
+
+\begin{table}[htbp]
+\centering
+\caption{El sesgo de los tres métodos clásicos contra un borde de posición
+conocida, en función de la resolución. El borde es la lineshape de
+Klein-Nishina de la línea del Cs-137 (\ClasEgamma{} keV, borde en
+\ClasEmax{} keV) convolucionada con una gaussiana de ancho $\sigma$. Las tres
+primeras columnas llevan ruido de Poisson; las tres marcadas ``s/r'' son el
+mismo cálculo sin ruido. Generada con \texttt{codigo/etapas/clasicos.py}.}
+\label{tab:clasicos}
+\footnotesize
+\input{generado/tabla_clasicos}
+\end{table}
+
+La tabla~\ref{tab:clasicos} lo mide. A $\sigma/B = \ClasSigmaMin$ los tres
+están a menos del 3\,\%; a $\sigma/B = \ClasSigmaMax$ el 50\,\% de altura
+sobreestima el borde en \ClasMitadHi\,\%, el mínimo de la derivada en
+\ClasDifHi\,\% y el escalón gaussiano en \ClasGaussHi\,\%. Y las tres
+columnas de la derecha son el mismo cálculo \emph{sin ruido}: el 50\,\% de
+altura y el escalón gaussiano dan lo mismo con y sin ruido, y el mínimo de la
+derivada sigue en \ClasDifSinHi\,\%. \textbf{El sesgo es del método, no de la
+estadística}: más eventos no lo achican. La figura~\ref{fig:teoria-clasicos}
+muestra el caso con la resolución de nuestra corrida de ejemplo, y la banda
+gris del panel (b) es el rango de resoluciones de esta campaña, donde los tres
+métodos están entre el 3 y el 7\,\% arriba.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{teoria_clasicos.pdf}
+\caption{(a) Un borde sintético con la resolución de la corrida de ejemplo
+($\sigma/B$ como en \EjCorrida): el borde verdadero y dónde lo pone cada
+método clásico. (b) El sesgo de cada método contra $\sigma/B$, con ruido de
+Poisson (líneas llenas) y sin ruido (trazos); la banda gris es el rango de
+resoluciones de esta campaña.}
+\label{fig:teoria-clasicos}
+\end{figure}
+
+\paragraph{Sobre las corridas reales.} Corriendo los tres métodos sobre las
+\ClasNReales{} corridas de la campaña, con la región centrada en el borde que
+estimó el NCC, y comparando con la $D$ del ajuste completo: el 50\,\% de
+altura queda \ClasRealMitadMed\,\% arriba (mediana; entre \ClasRealMitadMin{}
+y \ClasRealMitadMax\,\%), el mínimo de la derivada \ClasRealDifMed\,\% (entre
+\ClasRealDifMin{} y \ClasRealDifMax\,\%) y el escalón gaussiano
+\ClasRealGaussMed\,\% (entre \ClasRealGaussMin{} y \ClasRealGaussMax\,\%). Son
+sesgos mayores que los de la tabla a la misma resolución, y la diferencia
+tiene una explicación que la tabla no puede tener: el espectro real lleva
+scattering múltiple, que llena la zona por encima del borde (sección
+siguiente), y eso corre los tres estimadores todavía más hacia arriba. La
+plantilla de Geant4 contiene ese scattering; la lineshape de Klein-Nishina
+del sintético, no.
+
+\begin{aviso}
+Los tres métodos necesitan que se les diga \emph{dónde} está el borde, y la
+región no puede ser la ventana de ajuste del modelo, que en esta campaña
+arranca mucho más abajo. El exceso de cuentas a bajo canal cae más
+empinado que el propio borde: si la región lo incluye, el mínimo de la
+derivada se va ahí y devuelve un número sin relación con el borde. Con la
+región anclada al borde del NCC eso no pasa. Es un recordatorio de que
+``automático'' no quiere decir ``sin supuestos'': también estos métodos
+tienen una ventana, sólo que nadie la escribe.
+\end{aviso}
+
+\subsection{Correlación cruzada normalizada (NCC)}
+\label{sec:ncc}
+
+\paragraph{El problema.} Para ajustar el borde hay que decir en qué tramo del
+espectro se ajusta. Elegirlo a mano es subjetivo y el resultado depende de la
+elección; peor todavía, es una decisión que se toma mirando el mismo dato que
+después se ajusta. El NCC la automatiza.
+
+\paragraph{La idea.} Comparar la \emph{forma} del espectro medido con la de la
+plantilla, sin que importen ni la escala vertical ni un posible pedestal. La
+medida es el coeficiente de correlación de Pearson entre las dos curvas
+muestreadas en los mismos puntos:
+\[
+   \rho(s_1, s_2) \;=\;
+   \frac{\sum_i (s_{1,i}-\bar{s_1})\,(s_{2,i}-\bar{s_2})}
+        {\sqrt{\sum_i (s_{1,i}-\bar{s_1})^2 \;\sum_i (s_{2,i}-\bar{s_2})^2}}
+   \;\in\; [-1, 1].
+\]
+
+\paragraph{Por qué es inmune al offset y a la escala.} Si se reemplaza
+$s_2 \to a\,s_2 + b$ con $a>0$, la media se transforma igual
+($\bar{s_2} \to a\bar{s_2}+b$), así que las desviaciones respecto de la media
+se multiplican por $a$ en el numerador y en el denominador, y el factor se
+cancela; el corrimiento $b$ desaparece al restar la media. Es decir
+$\rho(s_1, a s_2 + b) = \rho(s_1, s_2)$. Eso es exactamente lo que hace falta
+cuando la amplitud del espectro todavía no se conoce: se compara forma y nada
+más.
+
+\paragraph{Qué se barre, y por qué un solo parámetro.} La tentación es barrer
+el principio y el fin de la ventana por separado, como hace el paper. Sobra:
+si el mapa canal-energía pasa por el origen, fijado el canal del borde $B$ la
+ventana ya está determinada,
+$[\,\texttt{inicio\_rel}\cdot B,\ \texttt{fin\_rel}\cdot B\,]$. Barrer el ancho
+aparte agrega un grado de libertad que el modelo no tiene, y sobre datos reales
+se lo gasta eligiendo ventanas degeneradas: en la cola vacía del espectro, donde
+casi no hay cuentas, el estandarizado amplifica ruido puro hasta parecerse a
+cualquier forma y $\rho$ se dispara. Acá se barre sólo $B$, sobre un rango
+derivado de dónde el espectro suavizado cae a la mitad de su plateau, y gana el
+$B$ de mayor $\rho$. El panel (c) de la figura~\ref{fig:teoria-ncc} es ese
+barrido.
+
+\paragraph{Dos detalles que cambian el resultado.} El espectro se suaviza con
+un filtro de Savitzky-Golay~\cite{savitzky1964}, que en cada punto ajusta un
+polinomio de grado bajo a una ventana de bines vecinos y toma el valor del
+polinomio en el centro. A diferencia de un promedio móvil, un polinomio de
+tercer grado puede seguir una pendiente y una curvatura, así que el filtro
+quita el ruido \emph{sin achatar el flanco}, y el flanco es justamente lo que
+se está midiendo. Y las dos curvas se remuestrean a un número fijo de puntos
+dentro de la ventana, fijo porque si cambiara con $B$ los $\rho$ de ventanas
+distintas dejarían de ser comparables entre sí.
+
+\paragraph{Cuántos puntos.} El paper remuestrea a 100 puntos y no dice por
+qué. Acá se usa un punto por bin de la ventana (\EjNptsAuto{} en la corrida de
+ejemplo), y la figura~\ref{fig:ncc-detalle}(c) muestra qué pasa al cambiarlo:
+entre \NptsMin{} y \NptsMax{} puntos el $B$ ganador se mueve como máximo
+\NptsBDesvMax\,\%, o sea que el resultado no depende de esa elección. Lo que
+sí cambia es $\rho$: con \NptsMin{} puntos vale \NptsRhoPocos{} y con un punto
+por bin, \NptsRhoAuto. Remuestrear a pocos puntos \emph{promedia} ruido y
+sube la correlación sin que la forma se parezca más; a más puntos que bines
+no se agrega información, sólo puntos correlacionados. Como $\rho$ es el
+criterio con que se comparan ventanas, conviene no inflarlo, y por eso el
+número de puntos no se inventa: es el que el histograma tiene.
+
+\paragraph{Lo que Pearson ve.} La figura~\ref{fig:ncc-detalle} muestra las
+dos curvas exactamente como entran a la ecuación: estandarizadas (media cero,
+desviación uno) dentro de la ventana ganadora. En el panel (a) la plantilla
+sigue al espectro en el flanco y se separa de él por debajo del borde, donde
+el espectro tiene más cuentas que la plantilla; en el panel (b), una contra la
+otra, esa separación es el gancho que se aparta de la diagonal en la zona de
+bajo canal. Todo lo demás cae sobre la diagonal, y eso es lo que $\rho =
+\EjRhoRecalc$ está midiendo. Ese $\rho$ se recalcula acá a partir de la
+ventana, y coincide con el del barrido (\EjRho): la figura reconstruye lo que
+el barrido hizo, no otra cosa.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{teoria_ncc_detalle.pdf}
+\caption{El NCC por dentro, sobre \EjCorrida. (a) El espectro suavizado y la
+plantilla llevada a canal con el $B$ ganador, las dos estandarizadas dentro
+de la ventana: es lo único que Pearson compara. (b) Una contra la otra, con
+el color indicando el canal; los puntos sobre la diagonal son donde las dos
+formas coinciden. (c) El $\rho$ máximo del barrido y el $B$ ganador contra el
+número de puntos de remuestreo; la línea punteada es un punto por bin, que
+es lo que se usa.}
+\label{fig:ncc-detalle}
+\end{figure}
+
+\paragraph{Qué entrega, paso a paso.} El barrido recorre \NBarrido{} valores
+del canal de prueba $B$, entre 0.4 y 1.1 veces el canal donde el espectro
+suavizado cae a la mitad de su plateau. Para cada $B$ hace cuatro cosas:
+(i)~lo convierte en una ganancia de prueba, $D = B/E_{\text{ref}}$, con
+$E_{\text{ref}}$ el borde de la primera línea gamma: como el mapa pasa por el
+origen, el canal del borde de referencia \emph{es} $D\,E_{\text{ref}}$, así que
+fijar $B$ es fijar $D$; (ii)~lleva la plantilla de Geant4 a canal con esa $D$ y
+la borronea con un $\sigma$ relativo fijo (\SigmaRelNCC); (iii)~arma la ventana
+$[\InicioRel\,B,\ f\,B]$, con $f = E_{\text{último}}/E_{\text{ref}} + 3\sigma$
+para que entren el último borde de la fuente y su cola; (iv)~remuestrea el
+espectro suavizado y la plantilla en esa ventana a un número fijo de puntos y
+calcula $\rho$. Gana el $B$ de mayor $\rho$, y de ese único número salen las
+tres cosas que el ajuste necesita:
+
+\begin{enumerate}
+\item \textbf{La ventana de ajuste}, $[\InicioRel\,B,\ f\,B]$. Es la que define
+      el $\chi^2$: qué bines cuentan y cuáles no. El final de la subida del
+      trigger, que se detecta en el propio espectro, es un piso que ninguna
+      ventana puede cruzar hacia abajo.
+\item \textbf{La semilla}, $D_0 = B/E_{\text{ref}}$, acompañada del $\sigma$
+      con que se hizo el barrido. No es una estimación de la resolución (ver
+      más abajo); es el punto de referencia contra el que se mide después
+      cuánto tuvo que corregir el ajuste.
+\item \textbf{Las cotas de la búsqueda}: $D \in [\CotaDMin\,D_0,\ \CotaDMax\,D_0]$
+      y $\sigma_{\text{rel}} \in [\CotaSigmaMin,\ \CotaSigmaMax]$. La de $D$ es
+      la única que depende de la semilla; la de $\sigma$ es física (una
+      resolución entre 2 y 30\,\%).
+\end{enumerate}
+
+\paragraph{Cómo entra eso al recocido.} Conviene ser preciso, porque la palabra
+\emph{semilla} sugiere que el recocido arranca de $D_0$, y no es así. Los
+\NArranques{} recocidos del multiarranque parten de puntos elegidos al azar,
+uniformes dentro de las cotas, y eso es a propósito: si todos arrancaran de la
+semilla, que terminen juntos no probaría que el mínimo es el global
+(sección~\ref{sec:sa}). Lo que $D_0$ fija es otra cosa:
+\begin{itemize}
+\item \textbf{Dónde se busca.} Las cotas son toda la información sobre $D$ que
+      el recocido recibe, y son anchas a propósito ($-40$ a $+60$\,\% de
+      $D_0$): la semilla sale de un barrido sin pesos, sobre el espectro
+      suavizado y con un $\sigma$ supuesto, así que puede venir sesgada unos
+      por ciento, y una cota estrecha dejaría el óptimo afuera sin avisar.
+\item \textbf{Con qué paso.} La escala de cada propuesta es el 10\,\% del
+      ancho de su cota (el $0.1\,d_i$ del paper); para $D$ eso es $0.1\,D_0$.
+      La temperatura inicial se mide alrededor del punto de partida de cada
+      arranque con ese mismo paso (sección~\ref{sec:sa}), así que también
+      hereda la escala de la semilla.
+\item \textbf{Qué se minimiza.} El $\chi^2$ de Pearson dentro de la ventana que
+      eligió el NCC, con la amplitud proyectada en forma cerrada. Otra ventana
+      es otro $\chi^2$: por eso la elección automática del intervalo es parte
+      del resultado y no un preámbulo.
+\item \textbf{Contra qué se compara.} La semilla se evalúa en ese mismo
+      $\chi^2$ y se guarda junto con el resultado; la distancia entre $D_0$ y
+      la $D$ final mide cuánto corrigió el ajuste con pesos a lo que la forma
+      sola decía.
+\end{itemize}
+Cada recocido enfría con $T_{k+1} = \Alfa\,T_k$ y \NMarkov{} propuestas por
+temperatura, y corta cuando el mejor costo deja de mejorar. Del mejor de los
+\NArranques{} arranques se baja al fondo exacto del valle con un optimizador
+local (Nelder--Mead): el recocido sin ese pulido da el tercer decimal, y el
+pulido sin recocido, el valle equivocado. Con el exceso de bajo canal modelado
+(sección~\ref{sec:decisiones}) el esquema es el mismo con un parámetro más:
+la ventana se extiende hacia abajo hasta $\InicioAjusteRel\,B$, y $\lambda$
+recibe como semilla el \LambdaSemillaRel\,\% del ancho de la ventana y como
+cotas \CotaLambdaMin~\mVns{} y la mitad de ese ancho.
+
+\paragraph{En números.} En la corrida del panel (c) de la
+figura~\ref{fig:teoria-ncc} (\EjCorrida) el barrido dio $B = \EjB$~\mVns{} con
+$\rho = \EjRho$, la ventana $[\EjVentanaLo,\ \EjVentanaHi]$~\mVns{} y la semilla
+$D_0 = \EjSemillaD$; el recocido, buscando entre \EjCotaDMin{} y \EjCotaDMax,
+terminó en $D = \EjD$, a \EjDesvSemilla\,\% de la semilla. Sobre las
+\NCorridas{} corridas, el intervalo ganador correlaciona entre $\rho = \RhoMin$
+y $\rho = \RhoMax$, y la semilla queda a \SemillaMediana\,\% (mediana) de la
+$D$ final, \SemillaMax\,\% en la peor.
+
+\paragraph{Qué no puede hacer.} Compara forma contra una plantilla, así que no
+tiene manera de saber que a bajo canal hay cuentas que la plantilla no
+contiene: si el exceso está ahí, el barrido elegirá una ventana que lo
+incluya. Y el $\sigma$ con que se construye la plantilla del barrido no es una
+medida de la resolución: el NCC correlaciona sobre el espectro suavizado y sin
+pesos, y además el fin de la ventana depende de ese $\sigma$, así que al
+barrerlo se comparan $\rho$ de ventanas distintas. La resolución la determina
+el ajuste con pesos.
+
+\subsection{Recocido simulado (SA)}
+\label{sec:sa}
+
+\paragraph{El problema.} Un optimizador local sólo sabe bajar: desde donde
+arranca camina hasta el fondo del valle en el que cayó, y no tiene forma de
+saber, desde adentro, si hay otro valle más profundo. El resultado depende del
+punto inicial. El panel (a) de la figura~\ref{fig:teoria-sa} muestra el caso.
+
+\paragraph{La idea.} Aceptar, a veces, moverse a un punto peor. Es la única
+manera de subir una loma y ver qué hay del otro lado. El nombre, y la idea de
+usar la física estadística como optimizador, vienen de Kirkpatrick, Gelatt y
+Vecchi~\cite{kirkpatrick1983}, y la metáfora es de la metalurgia: enfriar despacio un metal deja que los átomos encuentren la
+configuración de mínima energía, mientras que enfriarlo de golpe los congela en
+un vidrio, en un mínimo local.
+
+\paragraph{El criterio de Metropolis.} Es la regla de aceptación de
+Metropolis \emph{et al.}~\cite{metropolis1953}, treinta años anterior al
+recocido, inventada para muestrear configuraciones de un sistema a
+temperatura fija. Desde el punto actual $x$ se propone
+$x' = x + \Delta$, con $\Delta$ uniforme en una vecindad, y se acepta con
+probabilidad
+\[
+   P(x \to x') \;=\;
+   \min\!\left[\,1,\; e^{-\Delta E / T}\,\right],
+   \qquad \Delta E = E(x') - E(x),
+\]
+o sea siempre que mejore, y con probabilidad $e^{-\Delta E/T}$ si empeora.
+
+\paragraph{Por qué esa regla y no otra.} Porque es la que hace que la cadena,
+a temperatura fija, muestree la distribución de Boltzmann
+$\pi(x) \propto e^{-E(x)/T}$. La regla satisface balance detallado respecto de
+$\pi$: para cualquier par de estados, $\pi(x)P(x\to x') = \pi(x')P(x'\to x)$,
+y de ahí que $\pi$ sea la distribución estacionaria de la cadena. Lo que
+importa de eso es el límite: cuando $T \to 0$, $\pi$ se concentra en el mínimo
+global de $E$. Enfriar es, entonces, apretar la distribución alrededor de la
+respuesta.
+
+\paragraph{El enfriamiento, y por qué no hay garantía.} Acá se usa el
+enfriamiento geométrico del paper, $T_{k+1} = \alpha\,T_k$ con $\alpha$ cerca
+de 1, con una cadena de Markov de varias propuestas a cada temperatura. El
+teorema de convergencia del recocido simulado~\cite{geman1984} pide, en
+cambio, un enfriamiento \emph{logarítmico}, $T_k \gtrsim c/\log(1+k)$, que es
+tan lento que en la
+práctica no se usa (panel (c) de la figura~\ref{fig:teoria-sa}: la diferencia
+entre los dos es de órdenes de magnitud). O sea que el recocido geométrico
+\textbf{no} garantiza el óptimo global; lo que hay es evidencia empírica, y por
+eso el multiarranque de más abajo no es un lujo.
+
+\paragraph{La temperatura inicial no se puede copiar.} $T$ se compara contra
+$\Delta E$, así que está en las unidades del costo. El paper fija
+$T_{\text{init}} = 2000$ sin decir en qué unidades queda su función de costo,
+y ese número no es transferible: con un $\chi^2$ de orden mil anda bien, y con
+un costo normalizado a 1 acepta absolutamente todo y la cadena se vuelve una
+caminata al azar. Acá $T_{\text{init}}$ se \emph{mide}: se tiran propuestas al
+azar alrededor del punto inicial, se promedia cuánto empeoran, y se despeja
+\[
+   T_{\text{init}} \;=\; \frac{-\langle \Delta E_+ \rangle}{\ln p},
+\]
+con $p$ la fracción de esos empeoramientos que uno quiere aceptar al principio.
+Lo mismo con el criterio de corte, que acá es relativo y no absoluto.
+
+\paragraph{La tasa de aceptación es el termómetro.} Si al principio se acepta
+casi todo, la cadena está paseando al azar y la temperatura es demasiado alta;
+si no se acepta casi nada, ya se comporta como un optimizador local y sobra el
+recocido. Lo que se espera ver es una tasa alta al principio que cae al
+enfriarse, y eso se puede mirar corrida por corrida.
+
+\paragraph{Los parámetros lineales no se buscan.} La amplitud $A$ entra
+linealmente en el modelo, así que para cada valor de $(D, \sigma)$ la amplitud
+óptima se despeja en forma cerrada por mínimos cuadrados pesados. Proyectarla
+fuera (la proyección de variables de Golub y Pereyra~\cite{golub1973}, VARPRO;
+la fórmula está en la sección~\ref{sec:estadistica}) tiene dos efectos: el recocido
+busca en dos dimensiones en vez de tres, y desaparece el problema de escala
+entre parámetros, porque una amplitud de miles de cuentas y una ganancia de
+orden 1 no admiten un mismo paso de propuesta.
+
+\paragraph{El multiarranque es la evidencia.} Como no hay garantía teórica, la
+prueba práctica de que el mínimo encontrado es el global es correr
+\NArranques{} recocidos independientes desde puntos iniciales dispersos dentro
+de las cotas y ver que todos terminan en el mismo lugar. Arrancarlos todos
+desde la semilla no probaría nada. En esta campaña la dispersión entre
+arranques es de \DispersionMediana\,\% de $D$ en la corrida mediana y no pasa
+de \DispersionMax\,\% en la peor.
+
+\paragraph{Lo que se verificó del recocido, y dónde.} Las afirmaciones de
+esta sección no se dan por sabidas: \texttt{analisis/verificar\_sa.py}
+comprueba sobre nuestro propio $\chi^2$ que la cadena de Metropolis a
+temperatura fija muestrea Boltzmann, que $T_{\text{init}} = 2000$ del paper
+anda con su escala de costo y falla con otra, que el paso fijo y el
+adaptativo dan la misma dispersión, que el objetivo de aceptación no mueve
+$D$, y que proyectar $A$ no cambia el óptimo. El detalle, con el código
+comentado, está en \texttt{docs/recocido\_simulado.pdf} y
+\texttt{docs/recocido\_simulado\_codigo.pdf}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{teoria_sa.pdf}
+\caption{(a) Por qué hace falta: una función con varios valles, un optimizador
+local que se queda en el primero que encuentra (estrella) y el recorrido del
+recocido, coloreado por iteración, que escapa y llega al mínimo global.
+(b) El criterio de Metropolis para tres temperaturas: a $T$ alta se acepta casi
+cualquier empeoramiento, a $T$ baja sólo los muy chicos. (c) Los dos
+enfriamientos: el geométrico que se usa en la práctica y el logarítmico que
+exige el teorema de convergencia.}
+\label{fig:teoria-sa}
+\end{figure}
+
+\subsection{Estadística del ajuste}
+\label{sec:estadistica}
+
+El recocido entrega el mínimo del $\chi^2$; lo que convierte ese mínimo en un
+resultado científico es lo que viene después: con qué peso entró cada bin,
+qué tan hondo es el valle, y si el número que se reporta como error es el
+error de verdad. Esta sección recorre eso en orden, y termina con la única
+prueba que cierra la pregunta: meterle a la cadena un espectro de respuesta
+conocida y ver qué devuelve.
+
+\paragraph{Poisson, bin por bin.} El número de cuentas en un bin es una
+variable de Poisson: si en promedio caen $\mu$ eventos, la varianza es también
+$\mu$, y la barra de error es $\sqrt{\mu}$. Como $\mu$ no se conoce, lo
+habitual es usar el número observado, $\sigma_i = \sqrt{n_i}$. Cuando hay
+fondo restado el neto es $k_m n_m - k_f n_f$, con $k$ los factores de tiempo
+vivo, y las varianzas se suman con los factores al cuadrado,
+$\sigma^2 = k_m^2 n_m + k_f^2 n_f$. Un piso de una cuenta evita que un bin
+vacío tenga varianza cero y, por lo tanto, peso infinito.
+
+\paragraph{Por qué pesar.} El ajuste minimiza
+\[
+   \chi^2(\theta) \;=\; \sum_i \frac{\big[n_i - \mu_i(\theta)\big]^2}{\sigma_i^2},
+\]
+y el denominador no es un adorno. Sin él (mínimos cuadrados planos) el
+plateau, que tiene miles de cuentas por bin, domina la suma, y el flanco, que
+es donde vive la información sobre $D$, pesa poco; además no habría manera de
+decir si el ajuste es bueno ni de ponerle una barra a $D$. Con las barras de
+Poisson, minimizar $\chi^2$ es, para bines con muchas cuentas, lo mismo que
+maximizar la verosimilitud~\cite{cowan1998}, y $\chi^2/\text{ndf}$ cerca de
+uno dice que el modelo describe los datos dentro de su fluctuación
+estadística.
+
+\paragraph{Neyman contra Pearson.} Hay dos maneras de escribir $\sigma_i^2$,
+y no dan lo mismo~\cite{baker1984}. La de arriba, con el número
+\emph{observado}, es el $\chi^2$ de Neyman; la otra usa el número
+\emph{predicho} por el modelo, $\sigma_i^2 = \mu_i(\theta)$, y es el
+$\chi^2$ de Pearson. Con Neyman, un bin que fluctuó hacia abajo recibe una
+barra más chica y por lo tanto más peso, y el ajuste se deja arrastrar hacia
+abajo; el sesgo va como el inverso del número de cuentas por bin. Con Pearson
+la varianza sigue al modelo y ese sesgo desaparece, a cambio de que la
+amplitud ya no se despeja en un paso (la varianza depende de ella) y hay que
+iterar. Esta campaña se ajusta con Neyman, y cuánto cuesta eso se mide más
+abajo, con verdad conocida.
+
+\paragraph{La amplitud se despeja.} $A$ multiplica al modelo, así que para
+cada $(D, \sigma)$ el $\chi^2$ es una parábola en $A$ y su mínimo tiene
+fórmula cerrada: $A = \sum_i w_i f_i n_i / \sum_i w_i f_i^2$, con $f$ la
+plantilla convolucionada y $w = 1/\sigma^2$. Sacar los parámetros lineales
+del problema no lineal es lo que Golub y Pereyra~\cite{golub1973} llamaron
+proyección de variables, y acá compra dos cosas: el recocido busca en dos
+dimensiones en vez de tres, y desaparece el problema de escala entre una
+amplitud de miles de cuentas y una ganancia de orden uno.
+
+\paragraph{La barra de error: curvatura y perfil.} Si el valle del $\chi^2$
+es angosto, moverse poco empeora mucho el ajuste y el parámetro está bien
+determinado; si es ancho, no. Hay dos maneras de medir el ancho. La rápida es
+la \emph{curvatura}: se aproxima el mínimo por una parábola, la matriz de
+segundas derivadas (el hessiano) se invierte, y la raíz de la diagonal de
+$2H^{-1}$ es la barra de cada parámetro. La honesta es el \emph{perfil}: para
+cada valor de $D$ se reoptimiza todo lo demás y se anota cuánto subió el
+$\chi^2$; la barra es donde $\Delta\chi^2 = 1$. Las dos coinciden si el
+mínimo es cuadrático, y esa es una hipótesis que hay que mirar, no suponer.
+El panel (a) de la figura~\ref{fig:teoria-estadistica} las superpone para la
+corrida de ejemplo: la curvatura da $\pm\EjErrCurv$ y el perfil
+$\pm\EjErrPerfil$ \DkeV, o sea que acá el valle es cuadrático y la barra
+rápida vale. Cuando no coinciden gana el perfil, y la diferencia es
+información: dice que el $\chi^2$ es más plano lejos del mínimo de lo que su
+curvatura sugiere, típicamente porque el parámetro se confunde con otro.
+
+\paragraph{La correlación.} La matriz de covarianza tiene términos fuera de
+la diagonal, y en este ajuste no son chicos: $D$ y $\sigma$ están
+correlacionados entre \CorrMin{} y \CorrMax{} según la corrida. El panel (b)
+es el contorno de $\Delta\chi^2 = 1$ en el plano $(D, \sigma)$: una elipse
+inclinada, no un círculo. Quiere decir que subir $D$ y bajar $\sigma$ (o al
+revés) deja el $\chi^2$ casi igual, porque un borde más ancho centrado más
+abajo se parece a uno más angosto centrado más arriba. Citar los dos errores
+por separado, sin la correlación, sobreestima la precisión de cualquier
+cantidad que dependa de los dos.
+
+\paragraph{El escalado por $\chi^2/\text{ndf}$.} El criterio
+$\Delta\chi^2 = 1$ supone que el modelo es correcto y que las barras son las
+de Poisson. Sobre los datos reales el $\chi^2/\text{ndf}$ es \EjChiNdf{} en
+la corrida de ejemplo: el modelo no describe todo lo que hay (el exceso de
+bajo canal, sección~\ref{sec:decisiones}), y entonces la barra de
+$\Delta\chi^2 = 1$ es demasiado optimista. El parche estándar es multiplicar
+la barra por $\sqrt{\chi^2/\text{ndf}}$, o lo que es lo mismo, leer el perfil
+en $\Delta\chi^2 = \chi^2/\text{ndf}$, que es la segunda línea horizontal del
+panel (a). Con eso la barra reportada pasa de \EjErrCurv{} a
+\EjErrEscalado{} \DkeV. Hay que decirlo como lo que es: una corrección
+empírica que reparte la falta de ajuste entre todos los bines por igual, no
+una medición de qué parte de esa falta afecta a $D$.
+
+\paragraph{Lo que $\chi^2/\text{ndf}$ no dice.} Un $\chi^2/\text{ndf}$ cerca
+de uno dice que el modelo describe los datos dentro del ruido. No dice que
+sea el modelo correcto: dos modelos distintos pueden describir igual de bien
+y dar $D$ distintas, y entonces el $\chi^2$ no puede elegir entre ellos. En
+este proyecto pasó con la forma del exceso de bajo canal (exponencial contra
+ley de potencia, que dan $D$ distintas con el mismo $\chi^2/\text{ndf}$) y
+con la definición del área, que el $\chi^2$ tampoco
+distingue. Lo que separa esos casos no es estadística sino física, o una
+medición más.
+
+\paragraph{Sistemáticos: comunes y punto a punto.} Todo lo que se decide y no
+se ajusta (la compuerta, dónde arranca la ventana, qué plantilla, cómo se
+modela el exceso) es una fuente de error que la barra estadística no
+contiene. Se mide de una sola manera: cambiando la decisión dentro de lo
+razonable y viendo cuánto se mueve $D$. Para el test de linealidad importa
+además de qué tipo es cada uno: un sistemático \emph{común} a todas las
+corridas (la escala de la plantilla, la compuerta si es la misma en todas)
+mueve todas las $D$ juntas, se va en la pendiente de la recta y no ensucia
+los residuos; uno \emph{punto a punto} (la ventana, que el NCC elige corrida
+por corrida) sí, y es el que hay que comparar contra los residuos de la
+sección~\ref{sec:testA}.
+
+\paragraph{El cierre con verdad conocida.} Todo lo anterior son argumentos.
+La prueba es otra: tomar el ajuste de una corrida real como verdad, fabricar
+el espectro que ese modelo predice, muestrearlo con ruido de Poisson a la
+estadística real, y pasar cada realización por la cadena \emph{completa},
+NCC, recocido, pulido y curvatura, como si fuera un archivo nuevo. Si la
+cadena devuelve la $D$ que se le metió, dentro de la barra que ella misma
+reporta, en la fracción de veces que corresponde, entonces el número y su
+error son creíbles. Si no, no hay argumento que lo salve. Fuera de la ventana
+de ajuste (el exceso, la subida del umbral, la cola de apilamiento) el
+espectro sintético lleva la forma del dato real, porque la cadena tiene que
+elegir la ventana frente a lo mismo que ve en una corrida real.
+
+\begin{table}[htbp]
+\centering
+\caption{El cierre con verdad conocida sobre \EjCorrida, con las dos formas
+de pesar el $\chi^2$. La cobertura cuenta en cuántas realizaciones la $D$
+verdadera quedó dentro de la barra reportada; con barras correctas se espera
+el 68\,\%.}
+\label{tab:cierre}
+\footnotesize
+\input{generado/tabla_cierre}
+\end{table}
+
+La tabla~\ref{tab:cierre} es el resultado sobre \CierreN{} realizaciones de
+\EjCorrida, con una mediana de \CierreCuentasBin{} cuentas por bin en la
+ventana. Tres lecturas:
+\begin{itemize}
+\item \textbf{La cadena no sesga $D$} al nivel que esta campaña puede
+      resolver: pesando con el dato el sesgo es
+      $\CierreSesgoNeyman \pm \CierreErrSesgoNeyman$\,\%, y pesando con el
+      modelo, $\CierreSesgoPearson \pm \CierreErrSesgoPearson$\,\%. La
+      diferencia entre los dos es el sesgo de Neyman a esta estadística, y
+      está muy por debajo de los sistemáticos de la
+      sección~\ref{sec:limites}.
+\item \textbf{La barra reportada es del orden de la dispersión real, y algo
+      corta}: \CierreErrRepNeyman\,\% reportado contra \CierreDispNeyman\,\%
+      de dispersión, con cobertura de \CierreCobNeyman{} sobre \CierreN.
+      La barra sale de la curvatura del $\chi^2$ \emph{con la ventana fija};
+      la cadena, además, elige la ventana de nuevo en cada realización, y
+      ese paso agrega una dispersión que la curvatura no puede ver (el panel
+      (b) de la figura~\ref{fig:teoria-estadistica} superpone las dos
+      elipses). Sobre datos sintéticos el $\chi^2/\text{ndf}$ queda cerca de
+      uno, así que ahí el escalado no interviene; en las corridas reales sí,
+      y es lo que agranda la barra de la tabla~\ref{tab:calib}.
+\item \textbf{La semilla del NCC queda a \CierreSemillaNeyman\,\% de la
+      verdad} en promedio, o sea que la forma sola, sin pesos, ya acierta
+      dentro del uno por ciento; y $\sigma$ se recupera con un sesgo de
+      \CierreSesgoSigmaNeyman\,\% (Neyman) y \CierreSesgoSigmaPearson\,\%
+      (Pearson), del orden de su propia barra.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{teoria_estadistica.pdf}
+\caption{De dónde sale la barra de error, sobre \EjCorrida. (a) El perfil de
+$\Delta\chi^2$ en $D$ (puntos; en cada uno se reoptimizó $\sigma$) contra la
+parábola que supone la matriz de covarianza (línea gris), en unidades de la
+barra de la curvatura; las líneas horizontales son $\Delta\chi^2 = 1$ y
+$\Delta\chi^2 = \chi^2/\text{ndf}$, los dos cortes de los que sale la barra
+estadística y la barra escalada. (b) El plano $(D, \sigma)$: la elipse de
+$\Delta\chi^2 = 1$ del ajuste real (gris, lo que la barra reportada supone),
+la elipse de la dispersión empírica del cierre (trazos, lo que la cadena
+hace), la verdad del cierre (estrella) y lo que
+la cadena recuperó en cada realización, pesando con el dato (círculos) y con
+el modelo (cuadrados). (c) La $D$ recuperada en cada realización, con su
+barra, respecto de la verdad; las líneas de trazos son el sesgo medio de cada
+forma de pesar.}
+\label{fig:teoria-estadistica}
+\end{figure}
+
+\begin{aviso}
+El cierre prueba que la cadena devuelve lo que se le mete \emph{cuando el
+modelo es correcto}: el espectro sintético se fabrica con la misma plantilla
+con que después se ajusta. Lo que no puede probar es que la plantilla sea la
+correcta para el detector real. Eso lo dicen el $\chi^2/\text{ndf}$ de las
+corridas reales y el test de dos fuentes, y es por donde entran los
+sistemáticos.
+\end{aviso}
+
+% ===========================================================================
+\section{La simulación de Geant4}
+\label{sec:geant4}
+
+El modelo del espectro no es una fórmula: es el histograma de una simulación
+Monte Carlo de la geometría del detector con la fuente correspondiente, hecha
+con Geant4~\cite{agostinelli2003,allison2016} (versión \SimVersion). Esta
+sección dice qué se simuló y qué no, qué se guarda por evento, cómo eso se
+convierte en la plantilla que el ajuste usa, y cómo se vuelve a correr. Lo que
+importa para el lector que hereda esto: la plantilla \emph{es} la fuente, y
+lo que no está en la geometría simulada tampoco está en el modelo.
+
+\subsection{Qué se simula}
+
+\paragraph{Geometría.} Un cilindro de plástico centellador de \SimRadio{} cm de
+radio y \SimLargo{} cm de largo (2 por 2 pulgadas), con el eje en $z$. Delante,
+hacia la fuente, una tapa de aluminio de \SimTapa{} mm; alrededor, una pared
+lateral de aluminio de \SimPared{} mm; detrás, un cilindro de vidrio
+borosilicato (\SimVentanaPmt) de \SimPmtSemilargo{} cm de semilargo que hace
+las veces de ventana del fotomultiplicador. Todo dentro de un mundo de aire.
+La tapa y la pared atenúan y dispersan el haz que entra; el vidrio de atrás es
+el principal contribuyente a la retrodispersión desde detrás del detector.
+Cada uno de los tres se puede apagar por macro (\texttt{/det/housing},
+\texttt{/det/pmt}).
+
+\paragraph{Material.} El centellador es el material NIST
+\SimMaterial{} (poliviniltolueno, \SimDensidad{} g/cm$^3$, H
+\XcomFraccionH{} y C \XcomFraccionC{} en peso), la base común de la familia
+BC-400 (BC-404, BC-408, EJ-200). Los fluors que distinguen un modelo de otro
+cambian la luz y su tiempo de decaimiento, no el depósito de energía: la
+sección eficaz Compton depende del número de electrones por gramo y ese es el
+mismo. Por eso el depósito se simula con el PVT desnudo y la luz sale del
+quenching, que es lo que sigue.
+
+\paragraph{Luz y quenching.} La luz producida por unidad de camino no es
+proporcional a la energía perdida: a lo largo de una traza muy ionizante las
+moléculas excitadas se desexcitan sin emitir, y la luz satura. Es la ley de
+Birks~\cite{birks1951},
+\[
+   \frac{dL}{dx} \;=\; \frac{S\,\dfrac{dE}{dx}}{1 + k_B\,\dfrac{dE}{dx}},
+\]
+con $S$ la eficiencia de centelleo y $k_B$ la constante de Birks, acá
+\SimBirks{} mm/MeV, el valor de literatura para la familia BC-400. Geant4 no
+la trae para este material (su tabla interna cubre poliestireno, BGO, argón
+líquido y PbWO$_4$, y deja el PVT explícitamente comentado): sin fijarla a
+mano queda $k_B = 0$ y la luz sale exactamente proporcional al depósito, con
+lo que el efecto que se quiere estudiar desaparece sin ningún aviso. La
+simulación la fija en \texttt{DetectorConstruction::ApplyBirks()} y la
+aplica \emph{paso a paso}, en cada step de cada partícula cargada, nunca
+sobre el depósito total del evento: el quenching es no lineal en $dE/dx$, y
+en un evento con dos o tres electrones de baja energía, quenchar la suma da
+un resultado distinto de sumar los quench individuales. El detalle de qué
+significa esto para las dos escalas de energía está en la
+figura~\ref{fig:simulacion}(c) y en el test de dos fuentes
+(sección~\ref{sec:testA}).
+
+\paragraph{Fuente.} Gammas monoenergéticos desde un punto sobre el eje, a
+\SimDistancia{} cm de la tapa. No se simula el decaimiento del núcleo ni los
+electrones $\beta$: se dispara una línea por evento, sorteada con los pesos de
+la fuente (para el Co-60, las dos líneas con igual peso; en los eventos que
+depositan quedan \SimRazonLineasCo{} de la línea de \EgammaCoA{} keV por cada
+uno de la de \EgammaCoB, porque la sección eficaz baja con la energía). El
+haz de los archivos que usa este informe es \SimHaz, o sea axial: todos los
+fotones entran por el centro de la tapa. Existe la opción de un cono que
+cubra la cara o de emisión isótropa (\texttt{/gun/beam}), y también la de
+emitir las dos líneas del Co-60 en el mismo evento para reproducir el
+apilamiento por coincidencia (\texttt{/gun/cascade}); ninguna de las dos se
+usó.
+
+\paragraph{Física.} La lista electromagnética \SimFisica, la más precisa de
+las estándar (modelos de baja energía con perfil Doppler para el Compton), y
+\texttt{G4DecayPhysics}. El corte de producción de secundarios es de
+\SimCorte{} mm, muy por debajo del alcance de un electrón de retroceso
+de cientos de keV en el plástico (milímetros a 1 MeV): un secundario que no
+llegaría a recorrer esa distancia no se sigue como partícula nueva, su
+energía se deposita en el lugar.
+
+\begin{aviso}
+\textbf{Hay dos simulaciones y sólo una es esta.} En la carpeta del proyecto
+mayor hay otra (\texttt{ComptonSimulation/}, Windows), anterior: sin carcasa
+ni vidrio, con iones de Cs-137 decayendo y un solo histograma de salida en
+CSV. No produjo los archivos que este informe usa. La fuente de la que sí los
+produjo está copiada en \texttt{simulacion/} (el original vive en WSL) y es
+de donde este informe lee la geometría y las constantes; \texttt{simulacion/LEEME.md}
+dice qué hay y cómo se compila.
+\end{aviso}
+
+\subsection{Qué se guarda por evento}
+
+Por cada evento con depósito en el centellador queda una fila en el árbol
+\texttt{ComptonSpectrum}, con ocho columnas: el número de evento; la energía
+depositada (\texttt{Edep\_keV}); la energía del gamma primario
+(\texttt{E0\_keV}, que es lo que permite verificar de qué fuente es el
+archivo); cuántas veces dispersó el fotón por Compton dentro del centellador
+(\texttt{NCompton}) y cuántas absorbió por fotoeléctrico (\texttt{NPhoto});
+si el depósito fue casi total (\texttt{FullAbs}); la luz emitida con el
+quenching ya aplicado (\texttt{Lvis\_keVee}); y el cociente de las dos
+últimas (\texttt{QF}). Los eventos sin depósito, que son la mayoría, no se
+guardan. La tabla~\ref{tab:simulacion} resume los dos archivos.
+
+\begin{table}[htbp]
+\centering
+\caption{Los dos archivos de simulación de la campaña, leídos de los propios
+\texttt{.root}. El número de primarios lo escribe el programa en el nombre
+del archivo a partir del \texttt{beamOn}. La fracción que deposita se compara
+con la de la sección~\ref{sec:interaccion} (\ProbInteraccionCs\,\% y
+\ProbInteraccionCoB\,\% por la sección eficaz total en \LadoDetector{} cm de
+plástico): no tienen por qué coincidir exactamente, porque la tapa de Al
+atenúa el haz y a la vez la carcasa entera dispersa fotones hacia adentro.}
+\label{tab:simulacion}
+{\small\input{generado/tabla_simulacion}}
+\end{table}
+
+Tres cosas que la tabla dice y que conviene tener presentes al leer un
+ajuste:
+
+\begin{itemize}
+\item \textbf{Un cuarto de los eventos es scattering múltiple}
+      (\SimFracMultipleCo\,\% en el Co-60, \SimFracMultipleCs\,\% en el
+      Cs-137, con cadenas de hasta \SimNcMaxCs{} dispersiones). Esos eventos
+      pueden depositar más que el borde, hasta la energía completa del gamma
+      (el máximo de \texttt{Edep} es \SimEdepMaxCs{} keV en el Cs-137, que es
+      la línea entera), y son los que llenan la zona por encima de $E_{\max}$
+      en la figura~\ref{fig:simulacion}(b). Klein-Nishina describe sólo la
+      componente de un scattering; el resto es lo que la plantilla agrega y
+      la fórmula no tiene.
+\item \textbf{El fotoeléctrico existe, y el fotopico también, pero no se
+      ve}: lo sufre el \SimFracFotoCs\,\% de los eventos, casi siempre un
+      fotón que ya dispersó por Compton al menos una vez y llegó con una
+      fracción de su energía, donde la sección eficaz fotoeléctrica es mucho
+      mayor (sección~\ref{sec:interaccion}). Son los eventos que absorben la
+      energía completa: el fotopico del plástico son unos pocos cientos de
+      eventos en millones, invisible al lado del continuo.
+\item \textbf{El quenching no es un factor constante.} $\langle L/E_{dep}\rangle$
+      vale \SimQfBajoCo{} entre 50 y 100 keV y \SimQfAltoCo{} por encima de
+      700; en la zona que domina el ajuste vale \SimQfAjusteCo{} para el Co-60
+      y \SimQfAjusteCs{} para el Cs-137, y esa diferencia es la que aparece en
+      el test de dos fuentes (sección~\ref{sec:testA}) como el cociente
+      esperado \CocEsperado. Los bordes, en luz, caen en \SimBordeLuzCs{}
+      keVee (Cs-137) y \SimBordeLuzCo{} y \SimBordeLuzCoB{} keVee (Co-60), no
+      en \BordeCs, \BordeCoA{} y \BordeCoB.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{simulacion_geant4.pdf}
+\caption{Lo que hay en la simulación y lo que le falta. (a) Co-60: energía
+depositada (gris) y luz (azul) de los mismos eventos; los bordes teóricos
+(trazos) y los mismos bordes en luz (puntos), corridos por el quenching.
+(b) Cs-137, en luz, separado por número de dispersiones Compton del fotón:
+la componente de una sola dispersión es lo que Klein-Nishina describe y
+termina en el borde; las de dos y más lo rellenan por encima. (c) El
+quenching de Birks evento a evento: mediana de $L/E_{dep}$ en bines de
+$E_{dep}$, con la banda del 16 al 84\,\%, para los dos archivos; las
+líneas verticales son los tres bordes. (d) La razón dato/modelo del ajuste
+de \EjCorrida{} en todo el rango: dentro de la ventana de ajuste (gris) es
+uno; por debajo crece hasta \SimExcesoMax, que es el exceso de bajo canal
+que la geometría simulada no contiene; y en el umbral del trigger (línea
+punteada) cae a cero, porque eso tampoco está simulado.}
+\label{fig:simulacion}
+\end{figure}
+
+\subsection{Del árbol a la plantilla}
+
+La plantilla es el histograma de \texttt{\Rama} de todos los eventos con
+depósito, en \SimBinsPlantilla{} bines uniformes desde cero hasta el máximo de la rama
+(\texttt{analisis/simulacion.py}). Eso es todo lo que hay que decidir, y
+resulta que casi no importa:
+
+\begin{itemize}
+\item \textbf{A canal.} El mapa es $ch = D\,E$, así que la plantilla en canal
+      es la misma curva leída en $ch/D$: se interpola linealmente el
+      histograma en $ch/D$ para cada bin del espectro medido
+      (\texttt{ncc.plantilla\_en\_canal}). No se rebinnea; por eso no aparece
+      el peine de \emph{aliasing} que da rebinnear un histograma sobre una
+      grilla que no le es conmensurable.
+\item \textbf{La resolución.} La curva en canal se convoluciona con una
+      gaussiana de ancho $\sigma_{ch} = \sigma_{\text{rel}}\,D\,E_{\text{ref}}$,
+      normalizada a suma uno para que la convolución conserve las cuentas
+      (sección~\ref{sec:lineshape}). La simulación no lleva resolución
+      adentro a propósito: así se puede volver a borronear con otro $\sigma$
+      sin volver a simular, y $\sigma$ queda como parámetro del ajuste.
+\item \textbf{El binning es irrelevante, medido.} Reajustando \EjCorrida{}
+      con la misma cadena y la plantilla en \BinsMin{} a \BinsMax{} bines
+      (de \BinsAnchoMax{} a \BinsAnchoMin{} keV por bin), $D$ se mueve como
+      máximo \BinsDesvMax\,\%, muy por debajo de su barra estadística. La
+      razón es que el kernel de la resolución mide $\sigma_E \approx
+      \BinsSigmaE$ keV, unas \BinsSigmaSobreBin{} veces el bin más fino:
+      cualquier estructura del tamaño de un bin queda borrada por la
+      convolución antes de compararse con el dato. Lo que sí depende un poco
+      del binning es la \emph{barra} de $D$ por curvatura, porque la plantilla
+      interpolada es lineal a trozos y el paso de derivación la ve; es el
+      mismo efecto de la sección~\ref{sec:estadistica} y otra razón para
+      preferir el perfil de $\Delta\chi^2$.
+\end{itemize}
+
+\paragraph{La plantilla es la fuente, y hay que verificarlo.} Usar el archivo
+de Co-60 contra un espectro de Cs-137 no da error en ningún lado: da una $D$
+perfectamente formateada y sin sentido, porque la plantilla tiene sus bordes
+en \BordeCoA{} y \BordeCoB{} keV y los datos uno solo en \BordeCs. Por eso la
+cadena lee la columna \texttt{E0\_keV} del archivo
+(\texttt{simulacion.lineas\_primarias}), compara las líneas con las de la
+fuente declarada en el catálogo y se niega a seguir si no coinciden. Es la
+misma clase de falla silenciosa que un canal del digitalizador cableado a
+mano (sección~\ref{sec:cadena}): lo que no se verifica, se propaga con buena
+cara.
+
+\subsection{Qué no está simulado}
+
+Es la lista de por dónde entran los sistemáticos, y la figura~\ref{fig:simulacion}(d)
+muestra los dos primeros directamente:
+
+\begin{itemize}
+\item \textbf{El entorno.} No hay portafuente, mesa, soporte ni paredes:
+      sólo el detector con su carcasa, en aire. Los fotones que dispersan en
+      lo que rodea al detector y entran después con menos energía son el
+      candidato principal para el \textbf{exceso de bajo canal}: el dato
+      supera al modelo por debajo de la ventana de ajuste, y crece hacia
+      abajo. No es el umbral (eso sería un déficit) ni el fondo (está
+      restado en las corridas que lo tienen). Sin medirlo, la única defensa
+      es dejarlo fuera de la ventana (sección~\ref{sec:decisiones}).
+\item \textbf{El umbral del trigger.} La simulación registra todo depósito
+      mayor que cero; el discriminador de la placa no. Por eso el espectro
+      medido sube desde cero y el simulado no, y por eso ninguna ventana
+      puede empezar antes del fin de esa subida.
+\item \textbf{El fotomultiplicador y la electrónica.} El vidrio de atrás es
+      geometría, no fotodetección: no hay fotones ópticos, ni fotocátodo, ni
+      ganancia, ni pulso. Toda la cadena que va de la luz al área en \mVns{}
+      está resumida en dos números del ajuste, $D$ y $\sigma$.
+\item \textbf{La resolución}, que como se dijo se pone en el análisis.
+\item \textbf{El fondo, los cósmicos y el apilamiento.} Un evento simulado
+      es un gamma; en la corrida real hay muones, radiactividad ambiente y
+      dos pulsos que se superponen en la compuerta. Es lo que hay por encima
+      del borde en el espectro medido y que la plantilla no tiene, y otra
+      razón para que la ventana termine donde termina.
+\item \textbf{Si la geometría es la del detector real.} El tamaño del
+      plástico, el grosor de la carcasa y la distancia a la fuente son los
+      valores por defecto de la simulación, no medidas de los cuatro
+      detectores de la campaña (sección~\ref{sec:limites}). La cantidad de
+      scattering múltiple depende del tamaño, y con ella la forma por
+      encima del borde. En la implementación anterior del análisis se dejó
+      libre la fracción de un solo scattering y el ajuste la puso a menos de
+      una desviación estándar de la de la simulación, que es el único control
+      de este punto que se hizo; con el detector medido, hay que repetirlo.
+\end{itemize}
+
+\subsection{Cómo volver a correrla}
+
+La fuente está en \texttt{simulacion/} y se compila en WSL contra Geant4
+\SimVersion{} (\texttt{cmake} y \texttt{make}, ver \texttt{LEEME.md}). Cada
+fuente tiene su macro (\texttt{co60.mac}, \texttt{cs137.mac},
+\texttt{na22.mac}): elige el preset, inicializa y dispara. El programa
+escribe el archivo con el nombre \texttt{ComptonSpectrum\_<fuente>\_<N>.root},
+donde \texttt{N} es el número de primarios; los de \texttt{datos/} se corrieron
+con \SimPrimariosCo{} y \SimPrimariosCs{} millones. Para otra fuente basta
+agregar sus líneas y pesos a \texttt{SetPreset} (o pasar una energía suelta
+con \texttt{/gun/energy}), copiar el archivo a \texttt{datos/} y declararlo
+en el catálogo (\texttt{analisis/rutas.py}); la verificación de líneas hace el
+resto. Para otro detector, los comandos \texttt{/det/radius},
+\texttt{/det/halfZ}, \texttt{/det/housingWall} y \texttt{/det/housingFront}
+van antes de \texttt{/run/initialize}, y conviene que salgan de una medición
+y no de un valor por defecto.
+
+% ===========================================================================
+\section{La cadena de análisis, paso a paso}
+\label{sec:cadena}
+
+Esta sección es el recorrido completo, del archivo crudo al número. Cada paso
+dice qué hace, por qué está ahí y qué se rompería si no estuviera.
+
+\subsection{Del archivo del DRS4 al área de cada pulso}
+
+El detalle, con los pulsos reales y los números de cada corrida, está en la
+sección~\ref{sec:pulsos}; acá va el resumen para que la cadena se lea de
+corrido. Cada corrida es un archivo con decenas de miles de eventos, cada uno
+con la forma de onda digitalizada. El formato lo decide el contenido, no el
+nombre, y el canal también se detecta leyendo el archivo. De cada evento se
+calcula el área así:
+
+\begin{enumerate}
+\item \textbf{Se localiza el onset}, el instante en que arranca el pulso,
+      definido como el cruce del \FracOnset\,\% de la amplitud retrocediendo
+      desde el pico. Anclar todo al onset de \emph{cada} pulso, y no a un
+      tiempo fijo del registro, es lo que hace inmune la medición al jitter y
+      al \emph{walk} del trigger.
+\item \textbf{Se estima la línea base} como la mediana de las muestras
+      anteriores al onset, con un margen de \GuardaBase{} ns. Si la ventana de
+      línea base se comiera la subida del propio pulso, el error resultante se
+      multiplicaría al integrar y cada evento perdería una fracción distinta
+      de su carga.
+\item \textbf{Se integra} entre \emph{pre} ns antes del onset y \PostFijo{} ns
+      después, con la línea base ya restada. La integral usa el paso real
+      entre muestras: el DRS4 no muestrea uniformemente, el intervalo entre
+      celdas varía, y multiplicar por un $\Delta t$ promedio introduce un
+      error que depende de dónde cayó el pulso.
+\item \textbf{Se marcan las banderas de calidad}: saturación del
+      digitalizador, pulso truncado porque la compuerta se sale del registro,
+      falta de pre-pulso para la línea base, ausencia de pulso. Los eventos
+      con problemas que afectan el área se descartan, y la fracción descartada
+      queda registrada (tabla~\ref{tab:pulsos}).
+\end{enumerate}
+
+\subsection{Del área al espectro neto}
+
+Las áreas de todos los eventos se histograman
+(sección~\ref{sec:areas-espectro}). Tres cosas que parecen detalles y no lo
+son:
+
+\begin{itemize}
+\item \textbf{Binning común} para muestra y fondo. Sin el mismo rango y el
+      mismo número de bines la resta no significa nada, porque cada bin
+      abarcaría un intervalo distinto de \mVns.
+\item \textbf{Normalización por tiempo vivo, no por tiempo de pared.} El
+      programa de adquisición no guarda todos los eventos que la placa dispara;
+      el scaler de la placa da la tasa real de trigger, y de ahí sale cuánto
+      tiempo estuvo viva la corrida. Usar el tiempo de reloj en lugar del
+      tiempo vivo puede sobre-restar el fondo por un factor grande.
+\item \textbf{Sin recortar los negativos.} Después de restar el fondo hay bines
+      con valor negativo por fluctuación estadística. Recortarlos a cero sesga
+      el ajuste hacia arriba; se conservan.
+\end{itemize}
+
+El resultado es el espectro neto con su barra de error por bin, propagada de
+la estadística de Poisson de la muestra y del fondo. Ese error es el que pesa
+el ajuste, y sin él no habría $\chi^2$, ni bondad de ajuste, ni barra de error
+sobre $D$.
+
+\subsection{La plantilla de Geant4}
+
+El modelo del espectro es el histograma de energía depositada de la
+simulación de la sección~\ref{sec:geant4}: contiene el continuo Compton, los
+dos bordes del Co-60 con su intensidad relativa correcta, el scattering
+múltiple y el quenching, todo junto y sin parámetros libres. Se lleva a canal
+interpolándolo en $ch/D$ y se convoluciona con la resolución; el binning del
+histograma no cambia $D$ (medido: sección~\ref{sec:geant4}).
+
+La cadena verifica que la plantilla sea de la fuente declarada leyendo los
+gammas primarios del archivo de simulación, y se niega a seguir si no
+coinciden. Una plantilla de la fuente equivocada no da error en ningún lado:
+da un número equivocado bien formateado.
+
+\subsection{La ventana y la semilla: el NCC en la práctica}
+
+El formalismo, y el detalle de qué entrega y cómo lo usa el recocido, está en
+la sección~\ref{sec:ncc}. Acá, lo que se corre: el barrido decide la ventana
+de ajuste de cada corrida y entrega la semilla $D_0 = B/E_{\text{ref}}$, sin
+intervención; de la semilla salen las cotas ($\CotaDMin$ a $\CotaDMax\,D_0$) y
+el paso del recocido, que arranca \NArranques{} veces desde puntos al azar
+dentro de esas cotas. Sobre las \NCorridas{} corridas el intervalo ganador
+correlaciona entre $\rho = \RhoMin$ y $\rho = \RhoMax$, y entre la semilla y la
+$D$ con la que termina el ajuste hay una diferencia mediana de
+\SemillaMediana\,\% (máxima \SemillaMax\,\%, sobre \NSemillas{} corridas). O
+sea que la forma sola, sin pesos, ya deja a $D$ a menos del uno por ciento; lo
+que el ajuste agrega es la barra de error, la resolución y la evidencia de que
+ese mínimo es el global.
+
+
+\subsection{El ajuste}
+\label{sec:ajuste}
+
+El modelo es la plantilla llevada al eje medido dividiendo por $D$ y
+convolucionada con una gaussiana de ancho $\sigma$:
+\[
+   S(ch) \;=\; A \cdot \big[\,P(ch/D) \otimes G(\sigma)\,\big].
+\]
+Nada más: dos parámetros no lineales, $\{D, \sigma_{\text{rel}}\}$, y la
+amplitud $A$.
+
+\paragraph{La amplitud no se busca.} $A$ entra linealmente, así que fijados $D$
+y $\sigma$ la amplitud que minimiza el $\chi^2$ se despeja en forma cerrada.
+Eso se llama proyección y compra dos cosas: el optimizador busca en dos
+dimensiones en vez de tres, y desaparece el problema de escala entre
+parámetros (una amplitud de miles de cuentas y una ganancia de orden 1 no
+admiten un paso común).
+
+\paragraph{Por qué recocido simulado y no un optimizador corriente.} Un
+optimizador local sólo sabe bajar: desde donde arranca, camina hasta el fondo
+del valle en el que cayó, y no tiene manera de saber si hay otro más hondo. El
+recocido acepta a veces moverse a un punto peor, con probabilidad
+$e^{-\Delta E/T}$, y esa es la única forma de cruzar una loma. La temperatura
+$T$ arranca alta (la cadena pasea y explora) y se enfría geométricamente hasta
+comportarse como un optimizador local. Acá se corren \NArranques{} recocidos
+desde puntos iniciales dispersos dentro de las cotas, no desde la semilla: si
+todos arrancaran del mismo punto, que todos terminen igual no probaría nada.
+El detalle completo, con el código comentado línea por línea, está en
+\texttt{docs/recocido\_simulado\_codigo.pdf}.
+
+\paragraph{Qué tan estable es el resultado.} La dispersión entre los
+\NArranques{} arranques es de \DispersionMediana\,\% de $D$ en la corrida
+mediana y no pasa de \DispersionMax\,\% en la peor: el optimizador no aporta
+incerteza apreciable. Lo que limita la precisión es la estadística y, sobre
+todo, los sistemáticos de la sección~\ref{sec:limites}.
+
+\subsection{De dónde sale la barra de error}
+
+Del ancho del mínimo (el fundamento, con el perfil del $\chi^2$ y el cierre
+con verdad conocida, está en la sección~\ref{sec:estadistica}; acá va lo que
+se corre). Si el valle del $\chi^2$ es angosto, moverse poco empeora
+mucho el ajuste y el parámetro está bien determinado; si es ancho y plano, no.
+Numéricamente se evalúa la curvatura (el hessiano) alrededor del óptimo y se la
+invierte para obtener la matriz de covarianza; la raíz de la diagonal es la
+barra de error, que corresponde al contorno $\chi^2_{\min} + 1$.
+
+Dos advertencias sobre esa barra:
+
+\begin{itemize}
+\item \textbf{Está escalada por $\sqrt{\chi^2/\text{ndf}}$.} Cuando el ajuste
+      no describe perfectamente los datos, el criterio $\Delta\chi^2 = 1$
+      subestima la incerteza. Escalar es el parche estándar y hay que
+      reportarlo como tal, no como una medición del error.
+\item \textbf{$D$ y $\sigma$ están correlacionados}, entre \CorrMin{} y
+      \CorrMax{} según la corrida. Mover uno se compensa parcialmente con el
+      otro, así que citar sus errores por separado sobreestima la precisión de
+      cualquier cosa que dependa de los dos.
+\end{itemize}
+
+\subsection{Cuatro decisiones que valen para todas las corridas}
+\label{sec:decisiones}
+
+\paragraph{Plantilla de la fuente que corresponde.} El Co-60 se ajusta contra
+la simulación de Co-60 y el Cs-137 contra la de Cs-137, verificado leyendo el
+archivo de simulación.
+
+\paragraph{Compuerta común de \PostFijo{} ns.} La ventana de integración se
+fija igual para todas las corridas, contada desde el onset de cada pulso
+(cómo se mide y qué recoge: sección~\ref{sec:compuerta}). Que
+sea la \emph{misma} hace falta porque la ventana que cada archivo mediría por
+su cuenta depende de su propio pulso, y dos corridas que integran distinto
+recogen fracciones distintas de la carga, lo que entra derecho en $D$. Que sea
+\emph{corta} es una decisión de análisis: pasado el pulso, seguir integrando no
+agrega señal, agrega línea base y su ruido.
+
+El precio hay que decirlo con todas las letras, porque es grande: con
+\PostFijo{} ns la compuerta recoge entre el \CargaMin\,\% y el \CargaMax\,\% de
+la carga del pulso registrado (columna \emph{Carga} de la
+tabla~\ref{tab:calib}), y la resolución que sale del ajuste queda entre
+\FwhmMin\,\% y \FwhmMax\,\% FWHM. Dos consecuencias:
+
+\begin{itemize}
+\item Estas $D$ son un observable común y comparable, \textbf{no} la ganancia
+      de pulso entero. Para comparar corridas entre sí da igual, mientras la
+      ventana sea la misma; para citar una $D$ como ganancia absoluta del
+      detector, no.
+\item Integrar una fracción del pulso empeora la relación señal-ruido por
+      evento, y eso se ve directamente en la resolución. Es el costo de la
+      ventana corta y se paga en todas las corridas por igual.
+\end{itemize}
+
+\paragraph{Modelo sin exceso de bajo canal.} El ajuste es sólo la plantilla
+convolucionada. Una versión anterior de esta cadena agregaba una exponencial
+para describir el exceso de cuentas que aparece muy por debajo del borde, con
+dos parámetros más ($\lambda$ y su amplitud); se sacó, y con eso el recocido
+busca en dos dimensiones en lugar de tres.
+
+Lo que se pierde es la única defensa contra ese exceso, que sigue estando en
+los datos aunque el modelo ya no lo tenga. Con la exponencial adentro el ajuste
+podía arrancar bien abajo del borde; sin ella hay que dejar el exceso
+\emph{afuera} de la ventana, y dónde empieza la ventana lo decide el parámetro
+\texttt{inicio\_rel} (aquí, \InicioRel{} veces el canal del borde). O sea que
+ese número pasa a ser un sistemático elegido a mano: bajarlo mete zona sucia en
+el ajuste y sube el $\chi^2$; subirlo achica la palanca del flanco.
+
+\paragraph{Sin fondo prestado.} Sólo dos corridas tienen fondo propio (el
+Co-60 de junio y el Cs-137 del detector A a 1600 V). Las demás se calibran con
+el espectro crudo. Prestarles el fondo de otra sesión sería peor que no restar
+nada: el fondo depende del punto de operación, así que introduciría una forma
+ajena en el espectro. La tabla~\ref{tab:calib} dice corrida por corrida cuál
+lleva fondo restado.
+
+% ===========================================================================
+\section{Las \NCorridas{} calibraciones}
+\label{sec:calibraciones}
+
+\subsection{La tabla}
+
+La tabla~\ref{tab:calib} es el resultado crudo de la campaña: $\chi^2$/ndf
+entre \ChiMin{} y \ChiMax{}, resolución entre \FwhmMin\,\% y \FwhmMax\,\% FWHM
+en el borde de referencia, y error estadístico mediano de $D$ del
+\ErrRelMediano\,\%. Los dos primeros números hay que leerlos junto con la
+compuerta corta y el modelo sin exceso de la sección~\ref{sec:decisiones}: son
+las dos decisiones que los fijan, y las dos se pueden cambiar en la interfaz
+sin tocar código.
+
+\begin{center}
+\captionof{table}{Las \NCorridas{} calibraciones, en escala de energía
+depositada y con compuerta común de \PostFijo{} ns.}
+\label{tab:calib}
+% La tabla tiene diez columnas: sin apretar `tabcolsep` no entra a lo ancho.
+{\footnotesize\setlength{\tabcolsep}{4pt}\input{generado/tabla_calibraciones}}
+\end{center}
+
+\subsection{Columna por columna}
+
+\begin{description}
+\item[Det., HV, Fuente] El punto de operación. Una calibración vale para un
+      detector \emph{a un voltaje}, no para un detector: la ganancia de un
+      fotomultiplicador cambia con el alto voltaje como una potencia de
+      exponente cercano a 10, así que 50 V de diferencia son un factor 1.3.
+\item[Medida] La fecha del archivo. Sirve para saber qué corridas comparten
+      sesión, que es la variable escondida de la sección~\ref{sec:testA}.
+\item[$D$] La calibración, en \DkeV. El error es el estadístico del ajuste,
+      escalado por $\sqrt{\chi^2/\text{ndf}}$.
+\item[$1/D$] Lo mismo dado vuelta, en keV por \mVns, que es la forma en que se
+      usa: multiplicar el área medida por este número da la energía.
+\item[$\chi^2$/ndf] Bondad del ajuste. Un valor cercano a 1 significa que el
+      modelo describe los datos dentro de las barras de error. Por encima de 2,
+      como pasa en varias corridas de esta campaña, significa que hay
+      estructura en los datos que el modelo no tiene, y el candidato conocido
+      es el exceso de bajo canal.
+\item[FWHM] El ancho a media altura de la resolución en el borde de
+      referencia, en porcentaje de esa energía. Es
+      $2.35\,\sigma_{\text{rel}}$.
+\item[Carga] Qué fracción del pulso registrado entra en la compuerta de
+      \PostFijo{} ns. Es el precio de la ventana corta, y explica por qué estas
+      $D$ no son la ganancia de pulso entero.
+\item[Fondo] Si la corrida tiene fondo propio restado o se calibró con el
+      espectro crudo.
+\end{description}
+
+\subsection{Cómo mirar un ajuste}
+\label{sec:mirarajuste}
+
+Cada corrida deja seis páginas de diagnóstico
+(\NFigurasDiag{} figuras en total, apéndice~\ref{ap:archivos}). La
+figura~\ref{fig:ajuste} es la primera de ellas. Lo que hay que mirar, en orden:
+
+\begin{enumerate}
+\item \textbf{Que el modelo siga al dato en el flanco}, que es la zona que
+      determina $D$. Un modelo que va sistemáticamente por encima o por debajo
+      del plateau pero sigue bien el flanco todavía da un $D$ razonable; al
+      revés, no.
+\item \textbf{Dónde cae la línea del borde} respecto de la caída visible. Si la
+      línea roja está claramente corrida del punto de inflexión, algo salió
+      mal.
+\item \textbf{El espectro calibrado} (panel derecho): con el eje ya en keV, el
+      borde tiene que caer sobre su valor teórico. Para la fuente que se
+      ajustó, eso pasa por construcción; el valor está ahí para comparar con la
+      otra fuente del mismo detector.
+\item \textbf{La zona de bajo canal}: el pico que sube a la izquierda es el
+      exceso más el umbral del trigger, y no está modelado. Si la ventana de
+      ajuste lo toca, el $\chi^2$ lo va a acusar.
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{ajuste_A.pdf}
+\caption{Un ajuste típico (detector A a 1600 V). Izquierda: el espectro neto
+con el modelo ajustado y los bordes Compton donde caen. Derecha: el mismo
+espectro con el eje ya calibrado en energía. Los \NCorridas{} ajustes están en
+\texttt{analisis/figuras/calibraciones/}, ordenados por detector, voltaje y
+fuente.}
+\label{fig:ajuste}
+\end{figure}
+
+% ===========================================================================
+\section{Mismo detector al mismo voltaje: ¿coinciden las dos fuentes?}
+\label{sec:testA}
+
+Ésta es la única pregunta que valida la calibración. Con una sola fuente el
+mapa por el origen tiene un solo parámetro, así que el punto medido cae exacto
+sobre su propia recta y no hay nada que testear. Con dos fuentes en el
+\emph{mismo} punto de operación sí lo hay: las dos tienen que dar la misma
+$D$.
+
+\subsection{Qué habría que esperar}
+
+En escala de energía depositada, dos fuentes distintas \textbf{no} dan
+exactamente la misma $D$ aunque la cadena sea perfectamente lineal. El área
+mide luz, y la luz por keV depositado vale \QuenchCs{} en el borde del Cs-137
+(\BordeCs{} keV) y \QuenchCo{} en el del Co-60 (\BordeCoA{} keV), según la
+propia simulación. El cociente que corresponde esperar es entonces
+\[
+   \frac{D(\text{Cs-137})}{D(\text{Co-60})}
+   \;=\; \frac{\QuenchCs}{\QuenchCo} \;=\; \CocEsperado,
+\]
+y no 1. La columna \emph{Desac.} de la tabla~\ref{tab:testA} ya tiene ese
+factor descontado: es el desacuerdo que queda después de la física conocida.
+
+\subsection{Lo que se mide}
+
+\begin{table}[htbp]
+\centering
+\caption{Test de linealidad en cada punto de operación.}
+\label{tab:testA}
+{\small\setlength{\tabcolsep}{4.5pt}\input{generado/tabla_testA}}
+\end{table}
+
+El desacuerdo va de \DesacMin\,\% a \DesacMax\,\%, con el error estadístico de
+cada $D$ en el \ErrRelMediano\,\%: es un efecto real, no ruido. Tres cosas que
+conviene mirar juntas:
+
+\begin{itemize}
+\item \textbf{El signo cambia de detector a detector.} En A y D el Cs-137 da
+      una ganancia mayor que el Co-60; en C, menor. Una no linealidad de la
+      cadena de lectura, o un sesgo del método de ajuste, tendrían el mismo
+      signo en todos.
+\item \textbf{Crece con el voltaje en el detector A.} Ahí el desacuerdo es
+      monótono con el alto voltaje (tabla~\ref{tab:testA}), mientras que en C
+      se mantiene parejo. Un efecto que crece con la ganancia apunta a la
+      cadena de lectura; uno que no, al punto de operación.
+\item \textbf{El detector D desacuerda aun midiendo el mismo día.} Es el único
+      punto donde las dos fuentes se tomaron en la misma sesión, con 45 minutos
+      de diferencia, y aun así difieren en dos de los tres voltajes. Ahí no
+      hay deriva entre sesiones que culpar.
+\end{itemize}
+
+La figura~\ref{fig:cociente} resume las tres columnas de la derecha de la
+tabla en un solo gráfico, y la figura~\ref{fig:porpunto} muestra de dónde sale
+ese número sin pasar por el ajuste: los dos espectros de cada punto,
+calibrados con la \emph{misma} $D$, y las marcas de dónde deberían caer los
+bordes.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\linewidth]{cociente_fuentes.pdf}
+\caption{El cociente entre las dos calibraciones de cada punto. La línea
+cortada es lo que daría una cadena lineal en escala de energía depositada
+($\CocEsperado$, el quenching de Birks), no el 1 de la línea punteada.}
+\label{fig:cociente}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{comparacion_por_punto.pdf}
+\caption{Mismo detector, mismo voltaje. Cada espectro está dividido por su
+propio plateau Compton (la mediana de sus cuentas en la mitad inferior de su
+ventana de ajuste, la zona plana de antes del borde), así que esa zona vale 1
+en las dos curvas y las alturas no comparan nada: sólo importan las posiciones.
+Los dos espectros se llevan al eje de energía con una única $D$ (la del ajuste
+conjunto por el origen). La línea punteada gris marca dónde debería caer cada
+borde ($E$); la llena, del color de la fuente, dónde cae el borde que esa
+fuente midió, leído con la escala común: $E\,D_{\mathrm{fuente}}/D_{\mathrm{conjunta}}$.
+Coinciden sólo si esa fuente comparte la $D$ conjunta, y como la conjunta es
+un compromiso entre las dos, cuando las fuentes difieren una línea se corre
+hacia un lado y la otra hacia el otro; ese corrimiento es el desacuerdo
+(sección~\ref{sec:leer-porpunto}). Si cada espectro se calibrara con su propia
+$D$, los dos bordes caerían sobre sus marcas por construcción y la figura no
+diría nada. Un panel con fondo crema sería ese caso: un punto de operación con
+una sola fuente, cuyo borde cae sobre la marca por construcción y no es un test.
+Hasta el 22 de septiembre de 2026 la fila del detector B era así; con su Co-60
+medido, las cuatro filas tienen ahora las dos fuentes y las cuatro son tests.}
+\label{fig:porpunto}
+\end{figure}
+
+\subsection{Cómo se lee la figura~\ref{fig:porpunto}}
+\label{sec:leer-porpunto}
+
+Es la figura menos obvia del informe y la que más dice, así que conviene
+explicarla despacio:
+
+\begin{itemize}
+\item Cada panel es un punto de operación (un detector a un voltaje). Las dos
+      curvas son los espectros medidos con Cs-137 (naranja) y Co-60 (azul).
+\item \textbf{Qué es el eje vertical.} Cada curva está dividida por su propio
+      plateau Compton: la mediana de sus cuentas en la mitad inferior de su
+      ventana de ajuste, que es la zona plana que precede al borde. Así esa
+      zona vale 1 en las dos curvas, y las alturas no comparan ni actividades
+      ni tiempos de medida ni eficiencias: sólo importan las posiciones. Sin
+      esa división el Co-60, que reparte cuentas parecidas en el doble de
+      energía, quedaría aplastado contra el eje y no se podría comparar dónde
+      cae cada borde. El pico de bajo canal (el exceso, fuera de la ventana de
+      ajuste) se sale del eje a propósito.
+\item Los dos espectros se llevan al eje de energía con la \emph{misma} $D$,
+      la del ajuste conjunto de ese punto: la recta por el origen que mejor
+      pasa por los bordes de las dos fuentes a la vez. Ésa es la clave: si cada
+      uno se calibrara con la suya, los dos bordes caerían sobre sus marcas
+      por construcción y no habría nada que ver.
+\item Las líneas punteadas grises marcan dónde \emph{deberían} caer los bordes
+      (\BordeCs, \BordeCoA{} y \BordeCoB{} keV). Las líneas llenas, del color
+      de cada fuente, marcan dónde cae el borde que esa fuente midió: el canal
+      del borde ajustado, $D_{\mathrm{fuente}}\,E$, leído con la escala común,
+      o sea en $E\,D_{\mathrm{fuente}}/D_{\mathrm{conjunta}}$.
+\item \textbf{Por qué la mayoría no coincide con su marca, y por qué se
+      corren en direcciones opuestas.} Una línea llena cae sobre su punteada
+      sólo si $D_{\mathrm{fuente}} = D_{\mathrm{conjunta}}$. Pero la conjunta
+      es un compromiso entre las dos fuentes: si difieren, una queda por
+      encima y la otra por debajo, y el corrimiento relativo de cada línea es
+      $D_{\mathrm{fuente}}/D_{\mathrm{conjunta}} - 1$. Cuando el Cs-137 pide
+      más \mVns{} por keV que el Co-60 (detectores A, B y D) su borde queda a
+      la derecha de \BordeCs{} keV y los dos del Co-60 a la izquierda de
+      \BordeCoA{} y \BordeCoB; en el detector C es al revés. Los dos
+      corrimientos, uno para cada lado, componen el cociente Cs/Co que muestra
+      el panel, y el segundo número (\emph{desac.}) es ese cociente con el
+      quenching de Birks descontado, la misma columna de la
+      tabla~\ref{tab:testA}. Las líneas coincidirían sólo si las dos fuentes
+      dieran la misma $D$, que es la hipótesis que el test A rechaza. Con una
+      cadena perfectamente lineal tampoco coincidirían \emph{exactamente}: en
+      escala de energía depositada el quenching pone Cs/Co en \CocEsperado, o
+      sea un corrimiento de $\sim 1$\,\% por línea (5 keV en el Cs-137, 10 en
+      el Co-60), invisible a esta escala. Lo que la figura muestra son
+      desacuerdos de \DesacMin{} a \DesacMax\,\%. El panel D @ 1700~V, donde
+      Cs/Co vale casi 1, es el único en que las llenas caen sobre las
+      punteadas.
+\end{itemize}
+
+\subsection{Control: no es la compuerta}
+
+La compuerta común es la única decisión de análisis que se le impone a todas
+las corridas por igual, así que es el primer sospechoso. Y es un buen control
+porque la palanca es larga: 75 ns contra \PostFijo{} ns es multiplicar por seis
+la ventana, y pasar de recoger tres cuartos de la carga a recogerla casi
+entera. Aun así, donde el registro alcanza para las dos ventanas el cociente se
+mueve menos de \ControlMax\,\% (tabla~\ref{tab:control}), un orden de magnitud
+menos que el desacuerdo que hay que explicar. En el detector D el control no se
+puede correr: con 75 ns entra el 2\,\% de los eventos.
+
+\begin{table}[htbp]
+\centering
+\caption{El mismo test con otra compuerta, donde el registro lo permite.}
+\label{tab:control}
+{\small\input{generado/tabla_control}}
+\end{table}
+
+\subsection{Lectura}
+
+Con estos datos \textbf{el eje canal--energía no se puede dar por lineal}. El
+caso más claro es el del detector D: sus dos fuentes se midieron en la misma
+sesión y con el detector ya en buenas condiciones (sección~\ref{sec:repro}), así
+que ahí no hay ni deriva entre sesiones ni falla de montaje que culpar. En A,
+en B y en C las dos fuentes vienen de sesiones distintas, así que a una posible
+no linealidad se le suma una posible deriva del punto de operación, y con estos
+datos las dos causas no se pueden separar. El detector B agrega un dato que
+acota la discusión: su desacuerdo es del mismo tamaño que el del A (cerca del
+9\,\%) pero, a diferencia del A, \emph{no crece con el voltaje}
+(figura~\ref{fig:cociente}). Una no linealidad del eje no tiene por qué
+depender del alto voltaje, pero una diferencia de ganancia entre las dos
+sesiones tampoco la tendría si es fraccional y fija, así que el B es
+compatible con esa segunda explicación de la manera más simple posible: un
+factor constante, equivalente a menos de un 1\,\% de HV. Mientras eso siga abierto, la
+calibración de una sola fuente vale para esa fuente y ese día, y extrapolarla
+a otra energía arrastra un error del orden del 10\,\%.
+
+\begin{aviso}
+Conviene ser explícito sobre qué \emph{no} dice este resultado. No dice que el
+método esté mal: el mismo método, sobre las mismas corridas, da $D$ estables
+al \ErrRelMediano\,\% y una ley de ganancia limpia (sección~\ref{sec:detectores}).
+Tampoco dice cuál de las dos fuentes tiene razón: el test es simétrico, mide
+que discrepan y no cuál está corrida. Para resolverlo hace falta medir, no
+analizar mejor.
+\end{aviso}
+
+% ===========================================================================
+\section{Comparación entre detectores}
+\label{sec:detectores}
+
+\subsection{La ganancia y su ley con el voltaje}
+
+La ganancia crece con el alto voltaje como una potencia, que es lo que se
+espera de un fotomultiplicador, y no como una recta: el $\chi^2$ de la recta es
+entre uno y dos órdenes de magnitud peor en los \NGruposTestB{} grupos
+(tabla~\ref{tab:testB}). Los exponentes caen entre \BMin{} y \BMax{}, dentro o
+al borde del rango 6 a 10 típico de un PMT.
+
+Por qué una potencia y no una recta: cada dínodo multiplica los electrones por
+un factor que depende del voltaje entre etapas, y con $n$ dínodos en cascada la
+ganancia total va como ese factor a la $n$. De ahí sale $D \propto V^{b}$ con
+$b$ del orden del número de etapas. Que el exponente medido caiga en ese rango
+es una verificación independiente de que la cadena se comporta como se espera.
+
+\begin{table}[htbp]
+\centering
+\caption{Ganancia contra alto voltaje, detector por detector y fuente por
+fuente.}
+\label{tab:testB}
+{\small\input{generado/tabla_testB}}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{ganancia_dv.pdf}
+\caption{$D(V)$ de los cuatro detectores en escala doble logarítmica, con la
+ley de potencia ajustada, y los residuos de ese ajuste. En log-log una ley de
+potencia es una recta y su pendiente es $b$. Las cruces del detector D son las
+corridas repetidas de la sección~\ref{sec:repro}, que no entran en ningún
+ajuste. La figura completa, con el exponente de cada grupo, está en
+\texttt{figuras/resumen\_ganancia.png}.}
+\label{fig:ganancia}
+\end{figure}
+
+\subsection{Cuánta ganancia tiene cada uno}
+
+Los cuatro detectores no están ni cerca de la misma ganancia: a 1600 V con
+Cs-137 hay un factor \RazonGanancias{} entre el mayor y el menor
+($D = \DmilseisA$ el A, $\DmilseisB$ el B, $\DmilseisC$ el C y $\DmilseisD$ el
+D, en \DkeV). La última columna de la tabla~\ref{tab:detectores} traduce eso a
+lo único que se puede accionar en el laboratorio: a qué voltaje habría que
+poner cada detector para que iguale la ganancia que el A tiene a 1600 V, usando
+su propia ley $D \propto V^{b}$.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparación entre detectores y voltaje equivalente.}
+\label{tab:detectores}
+{\small\input{generado/tabla_detectores}}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{comparacion_detectores.pdf}
+\caption{Comparación entre detectores. Arriba: la ganancia de cada uno voltaje
+por voltaje, y la misma ganancia relativa al detector A. Abajo: la resolución
+en el borde de referencia y la calidad de los \NCorridas{} ajustes.}
+\label{fig:detectores}
+\end{figure}
+
+\subsection{Resolución}
+
+La resolución en el borde de referencia va de \FwhmMin\,\% a \FwhmMax\,\%
+FWHM (panel inferior izquierdo de la figura~\ref{fig:detectores}). Dos cosas
+que mirar ahí: si depende del alto voltaje y si separa a los detectores. Lo
+primero no debería, si la resolución está dominada por la estadística de
+fotoelectrones y no por el ruido electrónico; lo segundo es la comparación que
+importa, y es limpia porque las cuatro se midieron con la misma cadena y el
+mismo análisis.
+
+Hay que leerla, eso sí, junto con la compuerta: integrar sólo \PostFijo{} ns
+deja afuera buena parte de la carga (sección~\ref{sec:decisiones}), y menos
+señal por evento es peor resolución. El número que sale de acá no es la
+resolución intrínseca del centellador, es la de este observable.
+
+% ===========================================================================
+\section{El detector D con la tierra mal conectada}
+\label{sec:repro}
+
+El detector D tiene, en cada voltaje, dos corridas de Cs-137 tomadas con una
+semana de diferencia (1 y 8 de septiembre), y no son dos intentos equivalentes:
+\textbf{en la sesión del 1 de septiembre el detector estaba mal, con la tierra
+mal conectada}. Las corridas válidas del detector D son las del 8 de
+septiembre, y son las que se usan en todo el resto del informe. Las del 1-sep
+se calibran igual, y aparecen acá, porque miden el tamaño de esa falla.
+
+\begin{table}[htbp]
+\centering
+\caption{El mismo punto y la misma fuente, con y sin la falla de tierra.}
+\label{tab:repro}
+{\small\input{generado/tabla_descartadas}}
+\end{table}
+
+La ganancia se corrió entre \RepMin\,\% y \RepMax\,\% (tabla~\ref{tab:repro}),
+cuando el error estadístico de cada $D$ es del orden del \ErrRelMediano\,\%. O
+sea que una tierra mal conectada mueve la calibración cien veces más que la
+estadística de la medición, y lo hace sin romper nada visible: las corridas del
+1-sep ajustan, dan un $\chi^2$ razonable y entregan un número perfectamente
+formateado. Es el mejor argumento del informe a favor de anotar el estado del
+montaje en cada sesión: el análisis no tiene forma de detectar esto solo.
+
+\begin{aviso}
+Dos lecturas que \textbf{no} corresponde hacer con estos números. Primero, no
+son una medida de la reproducibilidad del montaje: una de las dos mediciones
+está mal por una causa identificada, así que lo que comparan es «con falla»
+contra «sin falla». Segundo, ese \RepMax\,\% no es una barra de error que haya
+que sumarle a las demás corridas; es el tamaño de un problema puntual, ya
+resuelto, del detector D.
+\end{aviso}
+
+Hay una consecuencia sobre el test de linealidad que conviene explicitar. El
+detector D es el único punto de operación donde las dos fuentes se midieron en
+la misma sesión, y ahora se sabe que esa sesión (la del 8-sep) es la buena. O
+sea que su desacuerdo entre fuentes no se puede atribuir ni a deriva entre
+sesiones ni a la falla de tierra: es la evidencia más limpia que tiene la
+campaña de que el problema de la sección~\ref{sec:testA} es real. La otra cara
+es que el detector D es el de menor ganancia y peor resolución, y aquel en que
+el borde queda más cerca del umbral del trigger, así que también es donde más
+puede pesar el exceso de bajo canal que el modelo no tiene.
+
+% ===========================================================================
+\section{Comparación con el método publicado}
+\label{sec:paper}
+
+El método que usa este informe es el de Kong \emph{et al.}~\cite{kong2025}:
+selección automática del intervalo por correlación cruzada
+normalizada y búsqueda del óptimo por recocido simulado. Esta sección compara
+lo que obtenemos con lo que ellos publican, para saber dónde estamos parados.
+Todos los números del paper que aparecen acá salen de una transcripción de sus
+figuras que vive en \texttt{replica\_paper/auditoria.py}, con la referencia a la
+figura de la que se leyó cada uno.
+
+\subsection{Qué no es comparable}
+
+Dos cosas, y conviene sacarlas del medio antes de comparar nada:
+
+\begin{itemize}
+\item \textbf{El eje.} Ellos calibran canal de ADC contra energía; nosotros
+      área de pulso en \mVns{} integrada en una compuerta de \PostFijo{} ns.
+      Sus pendientes y las nuestras son cantidades distintas de electrónicas
+      distintas; que se parezcan numéricamente es casualidad.
+\item \textbf{El detector.} Su validación de linealidad (su Fig. 3) usa
+      LaBr$_3$:Ce y NaI:Tl, que son inorgánicos, de alto $Z$ y \textbf{tienen
+      fotopico}. Eso les permite comparar la calibración por borde Compton
+      contra la calibración por fotopico \emph{en el mismo espectro}, que es
+      una referencia interna que nosotros no tenemos: en un plástico no hay
+      fotopico, y por eso nuestro único control es medir dos fuentes distintas.
+      Los centelladores plástico y líquido (BC408 y EJ309) aparecen en sus
+      figuras 4 y 5, sin tabla publicada.
+\end{itemize}
+
+\subsection{Robustez frente al intervalo de ajuste}
+
+Éste sí es el mismo test: tomar una corrida y ajustarla en seis intervalos
+anidados, desde uno que apenas cubre el borde hasta uno que abarca casi todo el
+espectro, y mirar cuánto se mueve el resultado. Los seis intervalos, en
+unidades del canal del borde, se leyeron de los paneles de su Fig. 5 y se
+aplican tal cual a nuestras corridas.
+
+\begin{table}[htbp]
+\centering
+\caption{El test de la Fig. 5 del paper, sobre nuestras corridas y sobre la
+suya.}
+\label{tab:robustez}
+{\small\input{generado/tabla_robustez}}
+\end{table}
+
+Sacando el intervalo más angosto, que en varias corridas ni siquiera contiene
+el flanco entero, nuestra dispersión va de \RobustezNuestraMin\,\% a
+\RobustezNuestraMax\,\% contra el \RobustezPaperSinAngosta\,\% que sale de sus
+propios paneles. Mismo orden de magnitud, un poco peor. Incluyendo el intervalo
+más angosto la comparación se ensucia en los dos casos: a ellos la dispersión
+les sube a \RobustezPaper\,\% y a nosotros mucho más en la corrida donde ese
+intervalo es evaluable. La conclusión es la misma para los dos: el método es
+estable mientras la ventana contenga el flanco completo, y deja de serlo cuando
+no.
+
+\subsection{Las métricas con las que el paper valida}
+
+Acá aparece la diferencia importante, y no es de resultados sino de vara. El
+paper valida su calibración con dos números: $R^2$ (entre \RdosPaperMin{} y
+\RdosPaperMax{} en sus cuatro ajustes) y una similitud coseno entre las dos
+relaciones energía-canal (\CosenoPaperMin{} y \CosenoPaperMax). La
+tabla~\ref{tab:paper} aplica esas mismas métricas a nuestros puntos.
+
+\begin{table}[htbp]
+\centering
+\caption{Nuestros puntos, medidos con las métricas de validación del paper.}
+\label{tab:paper}
+{\small\input{generado/tabla_metricas_paper}}
+\end{table}
+
+\begin{aviso}
+La similitud coseno da \textbf{\CosenoNuestro{} exactamente} en los nueve
+puntos, incluido aquel en que las dos fuentes discrepan un \DesacMax\,\%. No es
+falta de precisión numérica: dos rectas que pasan por el origen son vectores
+paralelos, así que su coseno vale 1 cualquiera sea la diferencia de pendientes.
+La métrica es ciega, por construcción, al modo de falla que este informe
+reporta. Con esa vara nuestra campaña se vería impecable.
+\end{aviso}
+
+El $R^2$ es algo más sensible (baja hasta \RdosNuestroMin{} en el peor punto)
+pero tampoco alcanza: leído sin contexto, un $R^2$ de 0.94 sobre dos puntos no
+parece un problema, y sin embargo corresponde a una discrepancia del
+\DesacMax\,\% entre fuentes. Por eso este informe reporta residuos en keV y en
+por ciento, que es lo que hace visible el desacuerdo.
+
+En esa escala: el paper cita desviaciones de \SDPaperMin{} a \SDPaperMax{} keV
+para sus rectas, con 5 o 6 puntos de cuatro fuentes; nuestros puntos de
+operación dan entre \SDNuestroMin{} y \SDNuestroMax{} keV con dos puntos. La
+comparación es desfavorable para nosotros y hay que tomarla con la salvedad de
+que no es simétrica: con dos puntos y una recta forzada por el origen, un
+desacuerdo de pendiente aparece entero como residuo, mientras que con seis
+puntos y ordenada libre se reparte.
+
+\subsection{Qué encontramos al auditar los números publicados}
+
+Reproducir sus resultados con sus propios datos (los puntos de la Fig. 3 están
+rotulados en la figura, así que se leen sin digitalizar píxeles) deja cuatro
+observaciones. Están en \texttt{replica\_paper/} con el detalle:
+
+\begin{enumerate}
+\item En el recuadro de la Fig. 3, el SD y el $R^2$ están intercambiados entre
+      las dos rectas. Al corregirlo, la afirmación de su Sección III de que el
+      SD del NCC-SA se mantiene por debajo del ajuste de fotopico \textbf{no se
+      cumple} en ninguno de los dos detectores.
+\item La Ec. 1 impresa da la energía del fotón retrodispersado, no la del borde
+      Compton: está mal por un factor 2.6 a 5.2. Sus propios rótulos siguen la
+      versión correcta, así que es una errata de tipografía y no de cálculo.
+\item La Ec. 12 define $\Delta E$ como la diferencia entre líneas gamma; la
+      separación entre los dos bordes del Co-60 que muestra su Fig. 3
+      corresponde a la diferencia entre \emph{bordes}. Con la fórmula impresa,
+      el segundo borde queda 4.2 keV corrido, contra un SD de ajuste de 2.2 keV.
+\item Ninguna lectura razonable de la similitud coseno reproduce los dos
+      valores publicados, y el paper no define entre qué vectores la calcula.
+\end{enumerate}
+
+Nada de esto invalida el método, que es el que usamos; sí quiere decir que sus
+números publicados no sirven como vara contra la cual medir los nuestros.
+
+\subsection{Dónde queda nuestra metodología}
+
+\begin{itemize}
+\item \textbf{Lo que hacemos igual o mejor.} La selección automática del
+      intervalo y el optimizador son los mismos (el paper no publica sus $\rho$,
+      así que ahí no hay comparación posible; los nuestros van de \RhoMin{} a
+      \RhoMax). La plantilla, en cambio, es una simulación de Geant4 de la
+      geometría real y no la lineshape analítica de Klein-Nishina: eso
+      incorpora el scattering múltiple y el quenching de Birks, que en un
+      plástico sesgan la posición del borde varios por ciento si se los ignora.
+      También acá se verificó que el óptimo del ajuste es global
+      (sección~\ref{sec:ajuste}), cosa que el paper afirma pero no muestra.
+\item \textbf{Lo que hacemos con más cuidado.} Reportamos residuos en keV en
+      lugar de similitud coseno, y decimos qué fracción de la carga entra en la
+      compuerta. Las dos cosas hacen que nuestros números se vean peor y que
+      digan más.
+\item \textbf{Lo que nos falta.} Fuentes. Ellos validan con cuatro (Na-22,
+      Cs-137, Mn-54 y Co-60) y nosotros con dos, y en la mayoría de los puntos
+      medidas en sesiones distintas. Mientras eso siga así, nuestro test de
+      linealidad detecta que hay un problema pero no puede decir de qué es.
+\end{itemize}
+
+% ===========================================================================
+\section{Cómo usar estos números}
+\label{sec:uso}
+
+\subsection{La receta}
+
+Para convertir un pulso medido en energía:
+
+\begin{enumerate}
+\item Integrar el pulso \textbf{de la misma manera}: onset al \FracOnset\,\%
+      de la amplitud, línea base de las muestras anteriores al onset, integral
+      desde unos \PreMin{} ns antes del onset hasta \PostFijo{} ns después
+      (sección~\ref{sec:area}). Una $D$ de este informe sólo vale para áreas
+      medidas así.
+\item Buscar en la tabla~\ref{tab:calib} la fila del detector y el voltaje
+      correspondientes.
+\item Multiplicar: energía $=$ área $\times\ (1/D)$, con el área en \mVns{} y
+      la energía en \keVdep.
+\end{enumerate}
+
+Ejemplo con el detector A a 1600 V, fuente Cs-137: $D = \DmilseisA$, así que un
+pulso de 1000 \mVns{} corresponde a \EjemploKeV{} \keVdep. La barra de error de
+$D$ (\ErrRelMediano\,\% típico) se propaga directamente a la energía.
+
+\subsection{Cuándo NO vale}
+
+\begin{itemize}
+\item \textbf{Otro voltaje.} La ganancia va como $V^{b}$ con $b$ entre \BMin{}
+      y \BMax: 50 V arriba son un \SubidaCincuenta\,\% más de ganancia. Se
+      puede interpolar con la ley de la tabla~\ref{tab:testB}, pero es una
+      extrapolación del modelo, no una medición.
+\item \textbf{Otra ventana de integración.} Una compuerta más larga recoge más
+      carga y da un $D$ mayor; la columna \emph{Carga} dice cuánto falta en
+      cada caso.
+\item \textbf{Otra energía muy distinta de la del borde usado.} Es justamente
+      lo que el test de linealidad no pudo confirmar; hoy hay que contar con un
+      error del orden del 10\,\% al extrapolar de una fuente a otra.
+\item \textbf{Otra escala.} Estos números dan energía \emph{depositada}. Si lo
+      que se quiere es luz (keVee), hay que recalibrar con la plantilla
+      \texttt{Lvis\_keVee}; el cociente entre las dos escalas es el quenching
+      de Birks, del orden del 5\,\%.
+\item \textbf{Otra atenuación.} Las 25 corridas se tomaron con 20 dB en línea y
+      el área se mide a la entrada del digitalizador, así que estos $D$ valen
+      para esa cadena. Sacar el atenuador multiplica el área por diez.
+\end{itemize}
+
+% ===========================================================================
+\section{Limitaciones y qué falta medir}
+\label{sec:limites}
+
+\begin{enumerate}
+\item \textbf{Una sola fuente en el detector B: medido.} Era la medición más
+      barata que faltaba y se hizo el 22 de septiembre de 2026: tres corridas
+      de Co-60 a 1600, 1650 y 1700 V. Con ellas el detector B pasa a tener las
+      dos fuentes y es el único de los cuatro cuyas dos fuentes dan el mismo
+      exponente de ganancia ($b = 9{,}44 \pm 0{,}04$ con Co-60 y
+      $9{,}56 \pm 0{,}05$ con Cs-137, compatibles a $1{,}9\,\sigma$; en los
+      otros tres la diferencia va de 9 a 37 $\sigma$). Lo que sigue abierto es
+      el punto siguiente: ese Co-60 es de otra sesión que su Cs-137, así que el
+      desacuerdo entre fuentes no se puede atribuir todavía a una sola causa.
+
+      \begin{aviso}
+      El 10 de septiembre aparecieron tres archivos \texttt{Co60.dat} en las
+      carpetas del detector B, y \textbf{no son del detector B}: son copias
+      byte a byte de los del detector C (mismo tamaño, misma fecha y mismo
+      contenido), y en el disco original el detector B sólo tiene Cs-137.
+      Quedaron fuera del análisis. Calibrarlos habría dado tres números
+      perfectamente formateados del detector equivocado, que es la clase de
+      error que no falla en ningún lado. \texttt{rutas.duplicados()} ahora
+      revisa esto y avisa antes de calibrar.
+      \end{aviso}
+
+\item \textbf{Las dos fuentes en la misma sesión, en los cuatro detectores.}
+      Es la única forma de separar la deriva entre sesiones del comportamiento
+      del detector, y hoy sólo el detector D la tiene. En A, en B y en C el
+      Co-60 y el Cs-137 se midieron con días o semanas de diferencia, así que
+      su desacuerdo no se puede atribuir a una sola causa. El detector B lo
+      deja ver con particular claridad: su desacuerdo es del mismo tamaño que
+      el del A pero \emph{no depende del voltaje} (tabla~\ref{tab:testA}),
+      que es la firma de una diferencia de ganancia fija entre las dos
+      sesiones y no de una no linealidad del eje.
+
+\item \textbf{El atenuador: cerrado.} Era una limitación de este informe
+      —no había registro de la atenuación de cada corrida— y dejó de serlo el
+      22 de septiembre de 2026: son \textbf{20 dB en las 25 corridas},
+      confirmado por quien midió, y están puestos para que el pulso del
+      fotomultiplicador no pase el rango de entrada del digitalizador. Con las
+      amplitudes medidas del Co-60 a 1550 V (mediana 45 mV, máximo en el techo
+      de 500 mV) eso no es una precaución nominal: sin atenuar, casi la mitad
+      de los eventos habría saturado. Dos consecuencias para leer las tablas.
+      Primera, el área se integra a la \emph{entrada} del digitalizador y
+      ningún paso del análisis corrige por la atenuación, así que todo $D$ de
+      este informe es por \mVns{} \emph{en esa entrada}, y la carga a la salida
+      del tubo es diez veces mayor. Segunda, lo que antes era un argumento
+      indirecto —que las cuatro sesiones cerraran razonablemente sugería que la
+      atenuación no había cambiado— pasa a ser una comprobación cruzada que
+      coincide con el registro: el punto de junio cae sobre la ley
+      $D \propto V^{b}$ a menos del 0,1 \%, y un cambio de atenuador lo habría
+      corrido un factor diez.
+
+\item \textbf{El retardo del trigger, más a la izquierda.} En la sesión del 8
+      de septiembre el pulso completo no entra en el registro: después del
+      onset sobran unos 46 ns. Con la compuerta corta de este informe eso no
+      molesta, pero deja sin opción a cualquier análisis que quiera el pulso
+      entero, y sin el pulso entero no hay con qué medir qué fracción de la
+      carga se está integrando de verdad. Adelantando el trigger 40 a 50 ns se
+      recupera esa posibilidad.
+
+\item \textbf{El exceso de bajo canal no está modelado.} Es la causa conocida
+      de los $\chi^2$/ndf por encima de 2. Hay dos caminos: volver a modelarlo
+      (lo que agrega dos parámetros) o subir \texttt{inicio\_rel} para dejarlo
+      afuera de la ventana. Hoy está en \InicioRel{} y el efecto sobre $D$ de
+      moverlo es del orden del 1\,\%.
+
+\item \textbf{El $\chi^2$ usa las barras del dato.} Pesar con la incerteza
+      medida en lugar de la predicha por el modelo sesga $D$ hacia abajo, y el
+      sesgo va como el inverso del número de cuentas por bin. Con la
+      estadística de esta campaña (mediana de \CuentasBin{} cuentas por bin
+      dentro de la ventana) el efecto está muy por debajo de los demás
+      sistemáticos, pero está: medido con verdad conocida
+      (sección~\ref{sec:estadistica}, tabla~\ref{tab:cierre}), pesar con el
+      dato da un sesgo de $\CierreSesgoNeyman \pm \CierreErrSesgoNeyman$\,\%
+      contra $\CierreSesgoPearson \pm \CierreErrSesgoPearson$\,\% pesando
+      con el modelo.
+
+\item \textbf{Na-22 del detector C.} Está medido (1600 V) y no se analizó: no
+      hay simulación de Geant4 de esa fuente con esta geometría, y la única
+      ruta sería la plantilla analítica, que sesga $D$ un 4\,\% respecto de las
+      demás. Un punto con ese sesgo metido en la recta de linealidad mediría la
+      elección de plantilla, no el detector. Con una simulación de Na-22, el
+      detector C pasaría a tener cuatro bordes y sería el mejor test de
+      linealidad de la campaña.
+
+\item \textbf{El fondo.} \NSinFondo{} de las \NCorridas{} corridas se calibran
+      con el espectro crudo. Para la posición del borde el efecto es chico,
+      pero una corrida de fondo por punto de operación cerraría la duda.
+\end{enumerate}
+
+% ===========================================================================
+% Las referencias: se citan con \cite{clave} y viven en referencias.bib.
+% `unsrt` las numera en orden de aparición.
+\bibliographystyle{unsrt}
+\bibliography{referencias}
+
+% ===========================================================================
+\appendix
+\section{Glosario de símbolos}
+\label{ap:glosario}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Símbolo} & \textbf{Unidad} & \textbf{Qué es} \\
+\midrule
+área & \mVns & la integral del pulso; el observable que se calibra \\
+onset & ns & cruce del \FracOnset\,\% de la amplitud; ancla de la compuerta \\
+compuerta & ns & de \emph{pre} antes del onset a \PostFijo{} después; se integra ahí \\
+$D$ & \DkeV & la calibración: área por unidad de energía depositada \\
+$1/D$ & keV/\mVns & lo mismo dado vuelta; es lo que se usa para convertir \\
+$E_\gamma$ & keV & energía de la línea gamma de la fuente \\
+$E_{\max}$ & keV & energía del borde Compton de esa línea \\
+$E_{\text{ref}}$ & keV & el borde de la primera línea; ancla del mapa \\
+$B$ & \mVns & canal donde cae el borde de referencia; $B = D\,E_{\text{ref}}$ \\
+$\sigma_{\text{rel}}$ & --- & resolución, como fracción de $B$ \\
+FWHM & \% & ancho a media altura, $2.35\,\sigma_{\text{rel}}$ \\
+$A$ & cuentas & amplitud del modelo; se despeja, no se ajusta \\
+$\rho$ & --- & correlación de Pearson entre dato y plantilla (NCC) \\
+$\chi^2$/ndf & --- & bondad del ajuste; cerca de 1 es bueno \\
+ndf & --- & grados de libertad: bines de la ventana menos parámetros \\
+$b$ & --- & exponente de la ley de ganancia, $D \propto V^{b}$ \\
+$c_0$ & \mVns & ordenada del mapa cuando se la libera; debería ser cero \\
+\keVdep & keV & energía depositada en el centellador \\
+keVee & keV & energía electrón-equivalente (luz); \emph{no} se usa acá \\
+$\chi^2$ de Neyman & --- & pesado con la varianza \emph{observada}; el de la campaña \\
+$\chi^2$ de Pearson & --- & pesado con la varianza \emph{predicha}; sin sesgo \\
+perfil & --- & $\Delta\chi^2$ contra un parámetro, reoptimizando el resto \\
+cobertura & --- & cuántas veces la verdad cae dentro de la barra (68\,\%) \\
+VARPRO & --- & la amplitud $A$ se despeja, no se busca \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Qué archivo es cada cosa}
+\label{ap:archivos}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Archivo} & \textbf{Qué tiene} \\
+\midrule
+\multicolumn{2}{l}{\textit{Resultados}} \\
+\texttt{figuras/calibraciones/resultados.csv} &
+   una fila por corrida, para abrir en cualquier lado \\
+\texttt{figuras/calibraciones/resultados.json} &
+   lo mismo, completo, es lo que lee este informe \\
+\texttt{figuras/calibraciones/RESUMEN.txt} &
+   el informe en texto plano, con los dos tests \\
+\midrule
+\multicolumn{2}{l}{\textit{Figuras de resumen}} \\
+\texttt{RESUMEN\_ganancia.png} & $D(V)$, residuos, exponentes y tabla \\
+\texttt{RESUMEN\_linealidad.png} & test A: puntos, residuos, cocientes \\
+\midrule
+\multicolumn{2}{l}{\textit{Por corrida}, en
+   \texttt{Detector X/<voltaje>/<fuente>/}} \\
+\texttt{\ldots\_1\_calibracion.png} & el ajuste y el espectro calibrado \\
+\texttt{\ldots\_2\_parametros.png} & $\Theta$, errores y correlaciones \\
+\texttt{\ldots\_3\_espectro\_y\_simulacion.png} & qué entra al ajuste \\
+\texttt{\ldots\_4\_ncc\_e\_intervalo.png} & el barrido del NCC y la ventana \\
+\texttt{\ldots\_5\_recocido.png} & los \NArranques{} arranques y el camino \\
+\texttt{\ldots\_6\_ventana\_de\_integracion.png} &
+   el pulso medio y la compuerta \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Cómo reproducir estos números}
+\label{ap:reproducir}
+
+Todo el informe sale de tres comandos, y ninguno de los números de este
+documento está tipeado a mano:
+
+\begin{quote}\ttfamily\small
+python analisis/calibrar\_todo.py \\
+python analisis/calibrar\_todo.py -{}-resumen -{}-control \\
+python analisis/informe.py
+\end{quote}
+
+\noindent
+El primero recorre el catálogo de corridas, calibra cada una y deja las seis
+páginas de diagnóstico de cada ajuste en
+\texttt{analisis/figuras/calibraciones/Detector X/<voltaje>/<fuente>/}, más
+\texttt{resultados.json}, \texttt{resultados.csv} y un informe de texto. El
+segundo agrega el control de compuerta de la tabla~\ref{tab:control}. El
+tercero regenera las figuras y las tablas de este documento y lo compila.
+
+Los parámetros que definen el análisis (la compuerta, el modelo con o sin
+exceso, el arranque de la ventana, la escala) están en un solo lugar y se
+pueden cambiar desde la interfaz: \texttt{python analisis/gui.py}. El lote los
+importa de ahí, así que no pueden quedar dos definiciones distintas del mismo
+observable.
+
+Lo que se edita a mano es \texttt{informe/informe.tex} y
+\texttt{informe/preambulo.tex}. Lo que hay en \texttt{informe/generado/} se
+reescribe en cada corrida: si un número del texto tiene que cambiar cuando
+cambien los datos, va como macro (la lista está al principio de
+\texttt{generado/numeros.tex}) y no escrito en el párrafo.
+
+\section{Ajustes de ejemplo}
+
+Los tres detectores que faltan, todos a 1600 V. Los \NCorridas{} ajustes
+completos, con sus seis páginas de diagnóstico cada uno, están en
+\texttt{analisis/figuras/calibraciones/}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{ajuste_B.pdf}\\[2mm]
+\includegraphics[width=\linewidth]{ajuste_C.pdf}\\[2mm]
+\includegraphics[width=\linewidth]{ajuste_D.pdf}
+\caption{Ajustes de los detectores B, C y D a 1600 V. El D es el de menor
+ganancia y peor resolución de los cuatro, y el que da los ajustes menos
+estables.}
+\end{figure}
+
+\end{document}

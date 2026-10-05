@@ -1,0 +1,35 @@
+# Datos: se quedan en OneDrive. "datos" es un acceso (junction) a esa carpeta.
+datos
+datos/
+
+# Generados al correr el análisis (se regeneran)
+figuras/
+.cache/
+__pycache__/
+*.pyc
+
+# Compilación del informe en LaTeX
+informe/*.aux
+informe/*.bbl
+informe/*.blg
+informe/*.fdb_latexmk
+informe/*.fls
+informe/*.log
+informe/*.out
+informe/*.synctex.gz
+informe/*.toc
+informe/*.pdf
+
+# Compilación de Geant4
+simulacion/build/
+
+# Archivos de datos sueltos
+*.root
+*.xml
+*.npz
+*.h5
+*.zip
+
+# Configuración local
+.vscode/
+.claude/

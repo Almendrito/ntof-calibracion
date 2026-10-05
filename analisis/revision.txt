@@ -1,0 +1,339 @@
+==============================================================================
+a_co60_1600  -  Co-60, Detector A a 1600 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 614 s de pared, 269 s VIVOS (43.8%), scaler 220 Hz
+             130.2 eventos/s guardados
+  COMPUERTA : pre = 2.3 ns, post = 75.0 ns -> recoge el 98.08% de la carga
+             la ventana que pide el pulso es 83.0 ns, pero el
+             registro deja 81 ns despues del onset (p5 40, p95
+             86), asi que se recorta a 75.0 ns. Con eso entra el
+             94.3% de los eventos.
+  calidad   : 75628/80000 utiles (94.5%)   satura 262, truncado 4112, sin_pre 482
+  area      : p1 134   p50 869   p90 1688   p99 2126   max 4417 mV*ns
+  espectro  : 600 bins hasta 3860 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 228 mV*ns
+  borde 50% : 1824 mV*ns   (valle en 1058, hombro en 1476)
+              -> D ~ 1.893 mV*ns/keV para el borde de 963.4 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+a_co60_1650  -  Co-60, Detector A a 1650 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 592 s de pared, 257 s VIVOS (43.4%), scaler 230 Hz
+             135.0 eventos/s guardados
+  COMPUERTA : pre = 2.6 ns, post = 74.8 ns -> recoge el 97.96% de la carga
+             la ventana que pide el pulso es 83.5 ns, pero el
+             registro deja 82 ns despues del onset (p5 77, p95
+             87), asi que se recorta a 74.8 ns. Con eso entra el
+             95.2% de los eventos.
+  calidad   : 76077/80000 utiles (95.1%)   satura 292, truncado 3633, sin_pre 421
+  area      : p1 137   p50 1067   p90 2217   p99 2758   max 4722 mV*ns
+  espectro  : 600 bins hasta 4873 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 248 mV*ns
+  borde 50% : 2416 mV*ns   (valle en 1385, hombro en 1880)
+              -> D ~ 2.508 mV*ns/keV para el borde de 963.4 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+a_co60_1700  -  Co-60, Detector A a 1700 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 597 s de pared, 219 s VIVOS (36.7%), scaler 260 Hz
+             133.9 eventos/s guardados
+  COMPUERTA : pre = 8.8 ns, post = 75.8 ns -> recoge el 97.75% de la carga
+             la ventana que pide el pulso es 85.6 ns, pero el
+             registro deja 82 ns despues del onset (p5 78, p95
+             90), asi que se recorta a 75.8 ns. Con eso entra el
+             95.5% de los eventos.
+  calidad   : 75733/80000 utiles (94.7%)   satura 586, truncado 3684, sin_pre 392
+  area      : p1 141   p50 1332   p90 2938   p99 3611   max 5336 mV*ns
+  espectro  : 600 bins hasta 6077 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 238 mV*ns
+  borde 50% : 3256 mV*ns   (valle en 1990, hombro en 2679)
+              -> D ~ 3.380 mV*ns/keV para el borde de 963.4 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+b_cs137_1600  -  Cs-137, Detector B a 1600 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 323 s de pared, 1 s VIVOS (0.3%), scaler 46590 Hz
+             247.7 eventos/s guardados
+  COMPUERTA : pre = 2.1 ns, post = 73.5 ns -> recoge el 98.27% de la carga
+             la ventana que pide el pulso es 81.1 ns, pero el
+             registro deja 81 ns despues del onset (p5 39, p95
+             84), asi que se recorta a 73.5 ns. Con eso entra el
+             91.2% de los eventos.
+  calidad   : 72422/80000 utiles (90.5%)   satura 0, truncado 7578, sin_pre 839
+  area      : p1 120   p50 436   p90 683   p99 833   max 3021 mV*ns
+  espectro  : 600 bins hasta 1397 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 215 mV*ns
+  borde 50% : 718 mV*ns   (valle en 478, hombro en 562)
+              -> D ~ 1.504 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+b_cs137_1650  -  Cs-137, Detector B a 1650 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 305 s de pared, 1 s VIVOS (0.3%), scaler 51200 Hz
+             262.4 eventos/s guardados
+  COMPUERTA : pre = 2.2 ns, post = 73.6 ns -> recoge el 98.23% de la carga
+             la ventana que pide el pulso es 81.4 ns, pero el
+             registro deja 81 ns despues del onset (p5 40, p95
+             84), asi que se recorta a 73.6 ns. Con eso entra el
+             94.0% de los eventos.
+  calidad   : 73287/80000 utiles (91.6%)   satura 0, truncado 6713, sin_pre 697
+  area      : p1 123   p50 531   p90 893   p99 1087   max 1878 mV*ns
+  espectro  : 600 bins hasta 1830 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 209 mV*ns
+  borde 50% : 950 mV*ns   (valle en 520, hombro en 795)
+              -> D ~ 1.990 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+b_cs137_1700  -  Cs-137, Detector B a 1700 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 287 s de pared, 1 s VIVOS (0.3%), scaler 55410 Hz
+             278.8 eventos/s guardados
+  COMPUERTA : pre = 2.5 ns, post = 73.6 ns -> recoge el 98.05% de la carga
+             la ventana que pide el pulso es 82.9 ns, pero el
+             registro deja 81 ns despues del onset (p5 40, p95
+             84), asi que se recorta a 73.6 ns. Con eso entra el
+             93.8% de los eventos.
+  calidad   : 74269/80000 utiles (92.8%)   satura 0, truncado 5731, sin_pre 587
+  area      : p1 140   p50 627   p90 1153   p99 1410   max 2434 mV*ns
+  espectro  : 600 bins hasta 2374 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 172 mV*ns
+  borde 50% : 1241 mV*ns   (valle en 762, hombro en 1031)
+              -> D ~ 2.599 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+c_cs137_1600  -  Cs-137, Detector C a 1600 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 302 s de pared, 1 s VIVOS (0.3%), scaler 46870 Hz
+             264.7 eventos/s guardados
+  COMPUERTA : pre = 2.2 ns, post = 73.7 ns -> recoge el 98.16% de la carga
+             la ventana que pide el pulso es 81.4 ns, pero el
+             registro deja 81 ns despues del onset (p5 39, p95
+             84), asi que se recorta a 73.7 ns. Con eso entra el
+             90.8% de los eventos.
+  calidad   : 72701/80000 utiles (90.9%)   satura 2, truncado 7297, sin_pre 777
+  area      : p1 123   p50 477   p90 762   p99 923   max 3047 mV*ns
+  espectro  : 600 bins hasta 1546 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 215 mV*ns
+  borde 50% : 805 mV*ns   (valle en 504, hombro en 674)
+              -> D ~ 1.687 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+c_cs137_1650  -  Cs-137, Detector C a 1650 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.7 ns, 5.12 GS/s
+  tiempo    : 306 s de pared, 1 s VIVOS (0.3%), scaler 51150 Hz
+             261.7 eventos/s guardados
+  COMPUERTA : pre = 2.0 ns, post = 73.5 ns -> recoge el 98.11% de la carga
+             la ventana que pide el pulso es 81.2 ns, pero el
+             registro deja 81 ns despues del onset (p5 40, p95
+             84), asi que se recorta a 73.5 ns. Con eso entra el
+             94.0% de los eventos.
+  calidad   : 73627/80000 utiles (92.0%)   satura 0, truncado 6373, sin_pre 717
+  area      : p1 127   p50 567   p90 989   p99 1211   max 3789 mV*ns
+  espectro  : 600 bins hasta 2036 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 212 mV*ns
+  borde 50% : 1050 mV*ns   (valle en 572, hombro en 888)
+              -> D ~ 2.201 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+c_cs137_1700  -  Cs-137, Detector C a 1700 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 307 s de pared, 1 s VIVOS (0.3%), scaler 54940 Hz
+             260.9 eventos/s guardados
+  COMPUERTA : pre = 2.0 ns, post = 73.9 ns -> recoge el 98.13% de la carga
+             la ventana que pide el pulso es 81.8 ns, pero el
+             registro deja 81 ns despues del onset (p5 77, p95
+             85), asi que se recorta a 73.9 ns. Con eso entra el
+             95.0% de los eventos.
+  calidad   : 74594/80000 utiles (93.2%)   satura 2, truncado 5404, sin_pre 584
+  area      : p1 131   p50 688   p90 1291   p99 1575   max 3292 mV*ns
+  espectro  : 600 bins hasta 2653 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 219 mV*ns
+  borde 50% : 1395 mV*ns   (valle en 842, hombro en 1130)
+              -> D ~ 2.922 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+co60  -  Co-60, Detector A a 1550 V (junio 2026)
+==============================================================================
+  formato   : XML del DRSOSC   placa Board_2859   canal CHN2   49252 eventos
+  registro  : 1024 muestras, 199.7 ns, 5.12 GS/s
+  tiempo    : 699 s de pared, 283 s VIVOS (40.4%), scaler 170 Hz
+             71.5 eventos/s guardados
+  COMPUERTA : pre = 2.2 ns, post = 60.3 ns -> recoge el 99.94% de la carga
+  calidad   : 46180/49252 utiles (93.8%)   satura 11, truncado 2902, sin_pre 3155
+  area      : p1 25   p50 408   p90 1191   p99 1535   max 4295 mV*ns
+  espectro  : 600 bins hasta 2675 mV*ns   fondo: restado
+  umbral    : la subida del trigger termina en 51 mV*ns
+  borde 50% : 1340 mV*ns   (valle en 787, hombro en 1050)
+              -> D ~ 1.391 mV*ns/keV para el borde de 963.4 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+cs137_1600  -  Cs-137, Detector A a 1600 V (26-ago-2026)
+==============================================================================
+  formato   : XML del DRSOSC   placa Board_2859   canal CHN1   80322 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 1373 s de pared, 2 s VIVOS (0.1%), scaler 46350 Hz
+             58.5 eventos/s guardados
+  COMPUERTA : pre = 2.0 ns, post = 97.8 ns -> recoge el 97.32% de la carga
+  calidad   : 72573/80322 utiles (90.4%)   satura 3, truncado 7746, sin_pre 516
+  area      : p1 184   p50 605   p90 915   p99 1106   max 2544 mV*ns
+  espectro  : 600 bins hasta 1864 mV*ns   fondo: restado
+  umbral    : la subida del trigger termina en 294 mV*ns
+  borde 50% : 958 mV*ns   (valle en 514, hombro en 800)
+              -> D ~ 2.007 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+cs137_1650  -  Cs-137, Detector A a 1650 V (26-ago-2026)
+==============================================================================
+  formato   : XML del DRSOSC   placa Board_2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 1549 s de pared, 1 s VIVOS (0.1%), scaler 52980 Hz
+             51.6 eventos/s guardados
+  COMPUERTA : pre = 2.0 ns, post = 55.1 ns -> recoge el 94.54% de la carga
+  calidad   : 79469/80000 utiles (99.3%)   satura 0, truncado 531, sin_pre 390
+  area      : p1 132   p50 634   p90 1130   p99 1375   max 2441 mV*ns
+  espectro  : 600 bins hasta 2296 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 216 mV*ns
+  borde 50% : 1211 mV*ns   (valle en 549, hombro en 1024)
+              -> D ~ 2.537 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+cs137_1700  -  Cs-137, Detector A a 1700 V (26-ago-2026)
+==============================================================================
+  formato   : XML del DRSOSC   placa Board_2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 1613 s de pared, 1 s VIVOS (0.1%), scaler 57180 Hz
+             49.6 eventos/s guardados
+  COMPUERTA : pre = 2.0 ns, post = 124.1 ns -> recoge el 99.64% de la carga
+  calidad   : 73015/80000 utiles (91.3%)   satura 2, truncado 6983, sin_pre 331
+  area      : p1 200   p50 947   p90 1668   p99 2034   max 4023 mV*ns
+  espectro  : 600 bins hasta 3415 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 378 mV*ns
+  borde 50% : 1784 mV*ns   (valle en 982, hombro en 1511)
+              -> D ~ 3.738 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+d_cs137_1600  -  Cs-137, Detector D a 1600 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 306 s de pared, 2 s VIVOS (0.6%), scaler 25150 Hz
+             261.4 eventos/s guardados
+  COMPUERTA : pre = 2.0 ns, post = 57.7 ns -> recoge el 94.08% de la carga
+  calidad   : 61175/80000 utiles (76.5%)   satura 1, truncado 18824, sin_pre 2681
+  area      : p1 113   p50 201   p90 266   p99 317   max 488 mV*ns
+  espectro  : 600 bins hasta 531 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 145 mV*ns
+  borde 50% : 259 mV*ns   (valle en nan, hombro en 199)
+              -> D ~ 0.542 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+d_cs137_1650  -  Cs-137, Detector D a 1650 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.8 ns, 5.12 GS/s
+  tiempo    : 300 s de pared, 1 s VIVOS (0.5%), scaler 32150 Hz
+             267.1 eventos/s guardados
+  COMPUERTA : pre = 2.0 ns, post = 54.9 ns -> recoge el 94.56% de la carga
+  calidad   : 66182/80000 utiles (82.7%)   satura 1, truncado 13817, sin_pre 1976
+  area      : p1 117   p50 239   p90 324   p99 394   max 913 mV*ns
+  espectro  : 600 bins hasta 660 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 146 mV*ns
+  borde 50% : 322 mV*ns   (valle en nan, hombro en 247)
+              -> D ~ 0.674 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+d_cs137_1700  -  Cs-137, Detector D a 1700 V (01-sep-2026, binario)
+==============================================================================
+  formato   : binario DRS4 (DRS2)   placa 2859   canal CHN1   80000 eventos
+  registro  : 1024 muestras, 199.7 ns, 5.12 GS/s
+  tiempo    : 288 s de pared, 1 s VIVOS (0.4%), scaler 38270 Hz
+             278.1 eventos/s guardados
+  COMPUERTA : pre = 5.3 ns, post = 73.5 ns -> recoge el 97.69% de la carga
+             la ventana que pide el pulso es 81.6 ns, pero el
+             registro deja 81 ns despues del onset (p5 39, p95
+             84), asi que se recorta a 73.5 ns. Con eso entra el
+             88.3% de los eventos.
+  calidad   : 69102/80000 utiles (86.4%)   satura 4, truncado 10894, sin_pre 1367
+  area      : p1 117   p50 301   p90 427   p99 523   max 1726 mV*ns
+  espectro  : 600 bins hasta 884 mV*ns   fondo: NO HAY
+  umbral    : la subida del trigger termina en 161 mV*ns
+  borde 50% : 428 mV*ns   (valle en nan, hombro en 326)
+              -> D ~ 0.897 mV*ns/keV para el borde de 477.3 keV
+              [crudo y sesgado alto; sirve para ubicarse, no para
+               calibrar]
+
+==============================================================================
+Resumen
+==============================================================================
+  corrida        punto           post  carga  utiles   viva    borde50    D ~     D/carga
+  a_co60_1600    A @ 1600 V     75.0  98.1%  94.5%   43.8%      1824    1.893    1.930
+  a_co60_1650    A @ 1650 V     74.8  98.0%  95.1%   43.4%      2416    2.508    2.560
+  a_co60_1700    A @ 1700 V     75.8  97.7%  94.7%   36.7%      3256    3.380    3.458
+  b_cs137_1600   B @ 1600 V     73.5  98.3%  90.5%    0.3%       718    1.504    1.531
+  b_cs137_1650   B @ 1650 V     73.6  98.2%  91.6%    0.3%       950    1.990    2.026
+  b_cs137_1700   B @ 1700 V     73.6  98.1%  92.8%    0.3%      1241    2.599    2.651
+  c_cs137_1600   C @ 1600 V     73.7  98.2%  90.9%    0.3%       805    1.687    1.718
+  c_cs137_1650   C @ 1650 V     73.5  98.1%  92.0%    0.3%      1050    2.201    2.243
+  c_cs137_1700   C @ 1700 V     73.9  98.1%  93.2%    0.3%      1395    2.922    2.978
+  co60           A @ 1550 V     60.3  99.9%  93.8%   40.4%      1340    1.391    1.392
+  cs137_1600     A @ 1600 V     97.8  97.3%  90.4%    0.1%       958    2.007    2.063
+  cs137_1650     A @ 1650 V     55.1  94.5%  99.3%    0.1%      1211    2.537    2.684
+  cs137_1700     A @ 1700 V    124.1  99.6%  91.3%    0.1%      1784    3.738    3.751
+  d_cs137_1600   D @ 1600 V     57.7  94.1%  76.5%    0.6%       259    0.542    0.576
+  d_cs137_1650   D @ 1650 V     54.9  94.6%  82.7%    0.5%       322    0.674    0.713
+  d_cs137_1700   D @ 1700 V     73.5  97.7%  86.4%    0.4%       428    0.897    0.918
+
+  'carga' es la fraccion del pulso que recoge la compuerta de esa
+  corrida. La columna D/carga extrapola a carga completa, que es lo
+  unico que hace comparables dos corridas con `post` distinto.
+  'D ~' sale del 50% de altura, que SESGA ALTO: no es la calibracion.
+
+  figura: analisis/figuras/revision.png
